@@ -96,7 +96,7 @@ Who designed this?! It's like they WANT it to be impossible to analyze.
 
 **Current mood:** Frustrated but determined. I can see why Dr. Trang said data cleaning would take most of our time. 
 
-**One positive thing:** If I can get this working with Auckland data, it might actually show the Phillips Curve relationship I learned about in macro. That would be pretty cool to see in real NZ data.
+**One positive thing:** If I can get this working with Auckland data, it might actually show the Phillips Curve relationship I learned about on Youtube. That would be pretty cool to see in real NZ data.
 
 ---
 
@@ -184,4 +184,5 @@ This was a good proof-of-concept that showed the approach can work, but I'm only
 
 **Sprint 1 Status:** ✅ Foundation working, but major expansion needed  
 **Next Week Priority:** Figure out how to process ALL the CSV files properly  
+
 **Sleep schedule:** Probably going to suffer in Sprint 2...
