@@ -770,8 +770,7 @@ class GovernmentDataCleaner:
             ('CPI Regional All Groups.csv', self.clean_cpi_regional_data),
             ('GDP All Industries.csv', self.clean_gdp_data),
             ('LCI All Sectors and Occupation Group.csv', self.clean_lci_data),
-            ('LCI All sectors and Industry Group.csv', self.clean_lci_data),
-            ('DPE Estimated Resident Population by Age and Sex.csv', self.clean_unemployment_demographics)
+            ('LCI All sectors and Industry Group.csv', self.clean_lci_data)
         ]
         
         cleaned_datasets = {}
