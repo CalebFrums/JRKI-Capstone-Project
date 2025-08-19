@@ -1,2082 +1,1908 @@
 [
   {
-    "timestamp": "2025-08-14T16:26:50.613603",
+    "timestamp": "2025-08-19T00:19:35.044627",
     "action": "CONFIG_LOADED",
     "details": "Configuration loaded from simple_config.json",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:50.634041",
+    "timestamp": "2025-08-19T00:19:35.071637",
     "action": "FILE_PROCESSING",
     "details": "Starting Age Group Regional Council.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:50.919672",
+    "timestamp": "2025-08-19T00:19:35.077790",
     "action": "PROCESSING_START",
-    "details": "Processing Age Group Regional Council.csv",
+    "details": "Processing Age Group Regional Council.csv (fingers crossed)",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:50.944014",
+    "timestamp": "2025-08-19T00:19:35.100444",
     "action": "DATA_LOADED",
     "details": "Loaded 96 rows from Age Group Regional Council.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:50.949919",
+    "timestamp": "2025-08-19T00:19:35.106913",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table information:: invalid literal for int() with base 10: 'Table information:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:50.970912",
+    "timestamp": "2025-08-19T00:19:35.125800",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Units:: invalid literal for int() with base 10: 'Units:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:50.991587",
+    "timestamp": "2025-08-19T00:19:35.144910",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Unemployment Rate: Percent, Magnitude = Units: invalid literal for int() with base 10: 'Unemployment Rate: Percent, Magnitude = Units'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.014255",
+    "timestamp": "2025-08-19T00:19:35.166485",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Footnotes:: invalid literal for int() with base 10: 'Footnotes:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.036141",
+    "timestamp": "2025-08-19T00:19:35.184386",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Symbols:: invalid literal for int() with base 10: 'Symbols:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.056862",
+    "timestamp": "2025-08-19T00:19:35.203306",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse .. figure not available: invalid literal for int() with base 10: '.. figure not available'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.078699",
+    "timestamp": "2025-08-19T00:19:35.220872",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse C: Confidential: invalid literal for int() with base 10: 'C: Confidential'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.099267",
+    "timestamp": "2025-08-19T00:19:35.251765",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse E: Early Estimate: invalid literal for int() with base 10: 'E: Early Estimate'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.169211",
+    "timestamp": "2025-08-19T00:19:35.270812",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse P: Provisional: invalid literal for int() with base 10: 'P: Provisional'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.270772",
+    "timestamp": "2025-08-19T00:19:35.289986",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse R: Revised: invalid literal for int() with base 10: 'R: Revised'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.373201",
+    "timestamp": "2025-08-19T00:19:35.308851",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse S: Suppressed: invalid literal for int() with base 10: 'S: Suppressed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.484169",
+    "timestamp": "2025-08-19T00:19:35.420418",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Status flags are not displayed: invalid literal for int() with base 10: 'Status flags are not displayed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.597610",
+    "timestamp": "2025-08-19T00:19:35.528582",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table reference:: invalid literal for int() with base 10: 'Table reference:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.713348",
+    "timestamp": "2025-08-19T00:19:35.641340",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse HLF205AA: invalid literal for int() with base 10: 'HLF205AA'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.831987",
+    "timestamp": "2025-08-19T00:19:35.756645",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Last updated:: invalid literal for int() with base 10: 'Last updated:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:51.954162",
+    "timestamp": "2025-08-19T00:19:35.877419",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Unemployment Rate: 06 August 2025 10:45am: invalid literal for int() with base 10: 'Unemployment Rate: 06 August 2025 10:45am'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:52.080265",
+    "timestamp": "2025-08-19T00:19:35.999396",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Source: Statistics New Zealand: invalid literal for int() with base 10: 'Source: Statistics New Zealand'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:52.214664",
+    "timestamp": "2025-08-19T00:19:36.125104",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Contact: Information Centre: invalid literal for int() with base 10: 'Contact: Information Centre'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:52.344145",
+    "timestamp": "2025-08-19T00:19:36.254817",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Telephone: 0508 525 525: invalid literal for int() with base 10: 'Telephone: 0508 525 525'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:52.494497",
+    "timestamp": "2025-08-19T00:19:36.386045",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Email:info@stats.govt.nz: invalid literal for int() with base 10: 'Email:info@stats.govt.nz'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:52.654566",
+    "timestamp": "2025-08-19T00:19:36.529539",
     "action": "DYNAMIC_REGIONS",
-    "details": "Detected 3 regions: ['Auckland', 'Wellington', 'Canterbury']",
+    "details": "Brilliant! Detected 3 regions: ['Auckland', 'Wellington', 'Canterbury']",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:52.811486",
+    "timestamp": "2025-08-19T00:19:36.661503",
     "action": "DYNAMIC_DEMOGRAPHICS",
-    "details": "Detected 22 demographics: ['15-24 Years', '25-54 Years', 'Total All Ages', '55+ Years', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65+', 'Male', 'Female', 'Total_Both_Sexes', 'European', 'Maori', 'Pacific_Peoples', 'Asian']",
+    "details": "Found 22 demographics: ['15-24 Years', '25-54 Years', 'Total All Ages', '55+ Years', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65+', 'Male', 'Female', 'Total_Both_Sexes', 'European', 'Maori', 'Pacific_Peoples', 'Asian']",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:52.991069",
+    "timestamp": "2025-08-19T00:19:36.803276",
     "action": "COLUMN_PROCESSED",
     "details": "Auckland_15-24_Years_unemployment_rate: 68.5% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:53.136438",
+    "timestamp": "2025-08-19T00:19:36.931978",
     "action": "COLUMN_PROCESSED",
     "details": "Wellington_15-24_Years_unemployment_rate: 68.5% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:53.298768",
+    "timestamp": "2025-08-19T00:19:37.060614",
     "action": "COLUMN_PROCESSED",
     "details": "Canterbury_15-24_Years_unemployment_rate: 68.5% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:53.442694",
+    "timestamp": "2025-08-19T00:19:37.192124",
     "action": "COLUMN_PROCESSED",
     "details": "Auckland_25-54_Years_unemployment_rate: 68.5% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:53.582505",
+    "timestamp": "2025-08-19T00:19:37.321244",
     "action": "COLUMN_PROCESSED",
     "details": "Wellington_25-54_Years_unemployment_rate: 68.5% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:53.719159",
+    "timestamp": "2025-08-19T00:19:37.450634",
     "action": "COLUMN_PROCESSED",
     "details": "Canterbury_25-54_Years_unemployment_rate: 68.5% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:53.861423",
+    "timestamp": "2025-08-19T00:19:37.583728",
     "action": "COLUMN_PROCESSED",
     "details": "Auckland_Total_All_Ages_unemployment_rate: 68.5% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:54.000225",
+    "timestamp": "2025-08-19T00:19:37.715118",
     "action": "COLUMN_PROCESSED",
     "details": "Wellington_Total_All_Ages_unemployment_rate: 68.5% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:54.145673",
+    "timestamp": "2025-08-19T00:19:37.846952",
     "action": "COLUMN_PROCESSED",
     "details": "Canterbury_Total_All_Ages_unemployment_rate: 68.5% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:54.289731",
+    "timestamp": "2025-08-19T00:19:37.978237",
     "action": "COLUMN_PROCESSED",
     "details": "Auckland_55+_Years_unemployment_rate: 68.5% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:54.348362",
+    "timestamp": "2025-08-19T00:19:38.036339",
     "action": "COLUMN_PROCESSED",
     "details": "Wellington_55+_Years_unemployment_rate: 68.5% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:54.487915",
+    "timestamp": "2025-08-19T00:19:38.168397",
     "action": "COLUMN_PROCESSED",
     "details": "Canterbury_55+_Years_unemployment_rate: 68.5% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:54.640985",
+    "timestamp": "2025-08-19T00:19:38.307710",
     "action": "DATA_CLEANED",
     "details": "Cleaned data: 63 rows (33 removed)",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:56.322981",
+    "timestamp": "2025-08-19T00:19:38.373705",
     "action": "FILE_SAVED",
     "details": "Saved to data_cleaned\\cleaned_Age Group Regional Council.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:56.447758",
+    "timestamp": "2025-08-19T00:19:38.497008",
     "action": "FILE_COMPLETED",
     "details": "\u2705 Successfully processed Age Group Regional Council.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:56.548587",
+    "timestamp": "2025-08-19T00:19:38.602661",
     "action": "FILE_PROCESSING",
     "details": "Starting Sex Age Group.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:57.112910",
+    "timestamp": "2025-08-19T00:19:38.653390",
     "action": "PROCESSING_START",
     "details": "Processing demographic data: Sex Age Group.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:26:57.166859",
+    "timestamp": "2025-08-19T00:19:38.710685",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table information:: invalid literal for int() with base 10: 'Table information:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:57.283535",
+    "timestamp": "2025-08-19T00:19:38.819210",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Units:: invalid literal for int() with base 10: 'Units:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:57.396472",
+    "timestamp": "2025-08-19T00:19:38.932822",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Unemployment Rate: Percent, Magnitude = Units: invalid literal for int() with base 10: 'Unemployment Rate: Percent, Magnitude = Units'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:57.517084",
+    "timestamp": "2025-08-19T00:19:39.042362",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Footnotes:: invalid literal for int() with base 10: 'Footnotes:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:57.630369",
+    "timestamp": "2025-08-19T00:19:39.156571",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Symbols:: invalid literal for int() with base 10: 'Symbols:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:57.749783",
+    "timestamp": "2025-08-19T00:19:39.272056",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse .. figure not available: invalid literal for int() with base 10: '.. figure not available'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:57.875565",
+    "timestamp": "2025-08-19T00:19:39.390470",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse C: Confidential: invalid literal for int() with base 10: 'C: Confidential'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:57.998291",
+    "timestamp": "2025-08-19T00:19:39.517367",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse E: Early Estimate: invalid literal for int() with base 10: 'E: Early Estimate'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:58.124131",
+    "timestamp": "2025-08-19T00:19:39.647136",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse P: Provisional: invalid literal for int() with base 10: 'P: Provisional'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:58.247645",
+    "timestamp": "2025-08-19T00:19:39.775598",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse R: Revised: invalid literal for int() with base 10: 'R: Revised'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:58.371166",
+    "timestamp": "2025-08-19T00:19:39.909093",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse S: Suppressed: invalid literal for int() with base 10: 'S: Suppressed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:58.496363",
+    "timestamp": "2025-08-19T00:19:40.031607",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Status flags are not displayed: invalid literal for int() with base 10: 'Status flags are not displayed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:58.620199",
+    "timestamp": "2025-08-19T00:19:40.156980",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table reference:: invalid literal for int() with base 10: 'Table reference:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:58.747407",
+    "timestamp": "2025-08-19T00:19:40.286560",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse HLF031AA: invalid literal for int() with base 10: 'HLF031AA'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:58.886315",
+    "timestamp": "2025-08-19T00:19:40.417170",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Last updated:: invalid literal for int() with base 10: 'Last updated:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:59.017567",
+    "timestamp": "2025-08-19T00:19:40.542864",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Unemployment Rate: 06 August 2025 10:45am: invalid literal for int() with base 10: 'Unemployment Rate: 06 August 2025 10:45am'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:59.145081",
+    "timestamp": "2025-08-19T00:19:40.672171",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Source: Statistics New Zealand: invalid literal for int() with base 10: 'Source: Statistics New Zealand'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:59.275574",
+    "timestamp": "2025-08-19T00:19:40.795860",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Contact: Information Centre: invalid literal for int() with base 10: 'Contact: Information Centre'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:59.405351",
+    "timestamp": "2025-08-19T00:19:40.922121",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Telephone: 0508 525 525: invalid literal for int() with base 10: 'Telephone: 0508 525 525'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:59.541700",
+    "timestamp": "2025-08-19T00:19:41.054868",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Email:info@stats.govt.nz: invalid literal for int() with base 10: 'Email:info@stats.govt.nz'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:26:59.681687",
+    "timestamp": "2025-08-19T00:19:41.190918",
     "action": "DYNAMIC_SEX_AGE",
     "details": "Detected 4 sex categories, 27 age groups",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:01.035497",
+    "timestamp": "2025-08-19T00:19:41.520134",
     "action": "DEMOGRAPHIC_DATA_SAVED",
     "details": "Saved 157 records to data_cleaned\\cleaned_Sex Age Group.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:01.181792",
+    "timestamp": "2025-08-19T00:19:41.652827",
     "action": "FILE_COMPLETED",
     "details": "\u2705 Successfully processed Sex Age Group.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:01.265868",
+    "timestamp": "2025-08-19T00:19:41.711360",
     "action": "FILE_PROCESSING",
     "details": "Starting Ethnic Group Regional Council.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:01.345851",
+    "timestamp": "2025-08-19T00:19:41.768745",
     "action": "FORMAT_CHANGE_ALERT",
-    "details": "\u26a0\ufe0f Ethnic Group Regional Council.csv has 61 columns (expected 15-25). Format may have changed - please review manually.",
+    "details": "\u26a0\ufe0f Ethnic Group Regional Council.csv has 61 columns (expected 15-25). Format might have changed - better check this manually!",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:01.447797",
+    "timestamp": "2025-08-19T00:19:41.869908",
     "action": "PROCESSING_START",
     "details": "Processing ethnic data: Ethnic Group Regional Council.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:01.570256",
+    "timestamp": "2025-08-19T00:19:41.995907",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table information:: invalid literal for int() with base 10: 'Table information:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:01.691092",
+    "timestamp": "2025-08-19T00:19:42.113697",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Units:: invalid literal for int() with base 10: 'Units:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:01.816014",
+    "timestamp": "2025-08-19T00:19:42.231492",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Unemployment Rate: Percent, Magnitude = Units: invalid literal for int() with base 10: 'Unemployment Rate: Percent, Magnitude = Units'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:01.933226",
+    "timestamp": "2025-08-19T00:19:42.348906",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Footnotes:: invalid literal for int() with base 10: 'Footnotes:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:02.052499",
+    "timestamp": "2025-08-19T00:19:42.465860",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Symbols:: invalid literal for int() with base 10: 'Symbols:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:02.171770",
+    "timestamp": "2025-08-19T00:19:42.586726",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse .. figure not available: invalid literal for int() with base 10: '.. figure not available'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:02.298356",
+    "timestamp": "2025-08-19T00:19:42.709014",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse C: Confidential: invalid literal for int() with base 10: 'C: Confidential'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:02.424419",
+    "timestamp": "2025-08-19T00:19:42.830354",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse E: Early Estimate: invalid literal for int() with base 10: 'E: Early Estimate'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:02.550781",
+    "timestamp": "2025-08-19T00:19:42.952424",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse P: Provisional: invalid literal for int() with base 10: 'P: Provisional'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:02.684195",
+    "timestamp": "2025-08-19T00:19:43.080416",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse R: Revised: invalid literal for int() with base 10: 'R: Revised'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:02.818784",
+    "timestamp": "2025-08-19T00:19:43.210568",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse S: Suppressed: invalid literal for int() with base 10: 'S: Suppressed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:02.947104",
+    "timestamp": "2025-08-19T00:19:43.337101",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Status flags are not displayed: invalid literal for int() with base 10: 'Status flags are not displayed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:03.077754",
+    "timestamp": "2025-08-19T00:19:43.462861",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table reference:: invalid literal for int() with base 10: 'Table reference:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:03.206236",
+    "timestamp": "2025-08-19T00:19:43.588303",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse HLF187AA: invalid literal for int() with base 10: 'HLF187AA'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:03.345204",
+    "timestamp": "2025-08-19T00:19:43.713498",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Last updated:: invalid literal for int() with base 10: 'Last updated:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:03.481178",
+    "timestamp": "2025-08-19T00:19:43.840225",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Unemployment Rate: 06 August 2025 10:45am: invalid literal for int() with base 10: 'Unemployment Rate: 06 August 2025 10:45am'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:03.618013",
+    "timestamp": "2025-08-19T00:19:43.963425",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Source: Statistics New Zealand: invalid literal for int() with base 10: 'Source: Statistics New Zealand'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:03.765099",
+    "timestamp": "2025-08-19T00:19:44.088892",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Contact: Information Centre: invalid literal for int() with base 10: 'Contact: Information Centre'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:03.904280",
+    "timestamp": "2025-08-19T00:19:44.221598",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Telephone: 0508 525 525: invalid literal for int() with base 10: 'Telephone: 0508 525 525'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:04.044284",
+    "timestamp": "2025-08-19T00:19:44.362490",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Email:info@stats.govt.nz: invalid literal for int() with base 10: 'Email:info@stats.govt.nz'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:05.058510",
+    "timestamp": "2025-08-19T00:19:44.502908",
     "action": "ETHNIC_DETECTION",
     "details": "Using 4 ethnic groups and 10 regions",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:07.393411",
+    "timestamp": "2025-08-19T00:19:44.574149",
     "action": "ETHNIC_DATA_SAVED",
     "details": "Saved sparse ethnic data: 73 records",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:07.453656",
+    "timestamp": "2025-08-19T00:19:44.631106",
     "action": "FILE_COMPLETED",
     "details": "\u2705 Successfully processed Ethnic Group Regional Council.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:07.586229",
+    "timestamp": "2025-08-19T00:19:44.736390",
     "action": "FILE_PROCESSING",
     "details": "Starting Sex Regional Council.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:07.683013",
+    "timestamp": "2025-08-19T00:19:44.791477",
     "action": "PROCESSING_START",
-    "details": "Processing Sex Regional Council.csv",
+    "details": "Processing Sex Regional Council.csv (fingers crossed)",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:07.740651",
+    "timestamp": "2025-08-19T00:19:44.911505",
     "action": "DATA_LOADED",
     "details": "Loaded 193 rows from Sex Regional Council.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:07.790115",
+    "timestamp": "2025-08-19T00:19:44.964662",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table information:: invalid literal for int() with base 10: 'Table information:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:07.905646",
+    "timestamp": "2025-08-19T00:19:45.077136",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Units:: invalid literal for int() with base 10: 'Units:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:08.022484",
+    "timestamp": "2025-08-19T00:19:45.188585",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Unemployment Rate: Percent, Magnitude = Units: invalid literal for int() with base 10: 'Unemployment Rate: Percent, Magnitude = Units'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:08.138985",
+    "timestamp": "2025-08-19T00:19:45.297714",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Footnotes:: invalid literal for int() with base 10: 'Footnotes:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:08.252070",
+    "timestamp": "2025-08-19T00:19:45.411778",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse On 1 November 2010, the new Auckland territorial authority (TA) replaced the existing: Rodney District, North Shore City, Auckland City, Waitakere City, Manukau City, Papakura District, and part of Franklin District councils.: invalid literal for int() with base 10: 'On 1 November 2010, the new Auckland territorial authority (TA) replaced the existing: Rodney District, North Shore City, Auckland City, Waitakere City, Manukau City, Papakura District, and part of F",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:08.372138",
+    "timestamp": "2025-08-19T00:19:45.523001",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse The changes were introduced in the release for the June 2011 quarter and backcast for the March 2011 quarter.: invalid literal for int() with base 10: 'The changes were introduced in the release for the June 2011 quarter and backcast for the March 2011 quarter.'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:08.470816",
+    "timestamp": "2025-08-19T00:19:45.624203",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse This has resulted in minor changes in the boundary between the Auckland and Waikato regions. The new boundaries do not significantly affect measures from the Household Labour Force Survey (HLFS).: invalid literal for int() with base 10: 'This has resulted in minor changes in the boundary between the Auckland and Waikato regions. The new boundaries do not significantly affect measures from the Household Labour Force Survey (HLFS).'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:08.576317",
+    "timestamp": "2025-08-19T00:19:45.726223",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Symbols:: invalid literal for int() with base 10: 'Symbols:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:08.667064",
+    "timestamp": "2025-08-19T00:19:45.812426",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse .. figure not available: invalid literal for int() with base 10: '.. figure not available'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:08.759466",
+    "timestamp": "2025-08-19T00:19:45.900053",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse C: Confidential: invalid literal for int() with base 10: 'C: Confidential'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:08.849991",
+    "timestamp": "2025-08-19T00:19:45.992202",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse E: Early Estimate: invalid literal for int() with base 10: 'E: Early Estimate'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:08.953369",
+    "timestamp": "2025-08-19T00:19:46.091840",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse P: Provisional: invalid literal for int() with base 10: 'P: Provisional'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:09.059617",
+    "timestamp": "2025-08-19T00:19:46.200276",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse R: Revised: invalid literal for int() with base 10: 'R: Revised'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:09.181686",
+    "timestamp": "2025-08-19T00:19:46.310738",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse S: Suppressed: invalid literal for int() with base 10: 'S: Suppressed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:09.300250",
+    "timestamp": "2025-08-19T00:19:46.424121",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Status flags are not displayed: invalid literal for int() with base 10: 'Status flags are not displayed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:09.417521",
+    "timestamp": "2025-08-19T00:19:46.535880",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table reference:: invalid literal for int() with base 10: 'Table reference:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:09.543494",
+    "timestamp": "2025-08-19T00:19:46.654795",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse HLF051AA: invalid literal for int() with base 10: 'HLF051AA'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:09.665364",
+    "timestamp": "2025-08-19T00:19:46.766586",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Last updated:: invalid literal for int() with base 10: 'Last updated:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:09.782255",
+    "timestamp": "2025-08-19T00:19:46.879869",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Unemployment Rate: 06 August 2025 10:45am: invalid literal for int() with base 10: 'Unemployment Rate: 06 August 2025 10:45am'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:09.904587",
+    "timestamp": "2025-08-19T00:19:47.002508",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Source: Statistics New Zealand: invalid literal for int() with base 10: 'Source: Statistics New Zealand'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:10.038726",
+    "timestamp": "2025-08-19T00:19:47.125163",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Contact: Information Centre: invalid literal for int() with base 10: 'Contact: Information Centre'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:10.167788",
+    "timestamp": "2025-08-19T00:19:47.244420",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Telephone: 0508 525 525: invalid literal for int() with base 10: 'Telephone: 0508 525 525'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:10.303223",
+    "timestamp": "2025-08-19T00:19:47.369309",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Email:info@stats.govt.nz: invalid literal for int() with base 10: 'Email:info@stats.govt.nz'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:10.442376",
+    "timestamp": "2025-08-19T00:19:47.499627",
     "action": "DYNAMIC_REGIONS",
-    "details": "Detected 10 regions: ['Northland', 'Auckland', 'Waikato', 'Gisborne', 'Taranaki', 'Wellington', 'Marlborough', 'Canterbury', 'Otago', 'Southland']",
+    "details": "Brilliant! Detected 10 regions: ['Northland', 'Auckland', 'Waikato', 'Gisborne', 'Taranaki', 'Wellington', 'Marlborough', 'Canterbury', 'Southland', 'Otago']",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:10.582335",
+    "timestamp": "2025-08-19T00:19:47.629186",
     "action": "DYNAMIC_DEMOGRAPHICS",
-    "details": "Detected 22 demographics: ['Male', 'Female', '15-24 Years', '25-54 Years', '55+ Years', 'Total All Ages', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65+', 'Total_Both_Sexes', 'European', 'Maori', 'Pacific_Peoples', 'Asian']",
+    "details": "Found 22 demographics: ['Male', 'Female', '15-24 Years', '25-54 Years', '55+ Years', 'Total All Ages', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65+', 'Total_Both_Sexes', 'European', 'Maori', 'Pacific_Peoples', 'Asian']",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:10.718386",
+    "timestamp": "2025-08-19T00:19:47.758572",
     "action": "COLUMN_PROCESSED",
     "details": "Northland_Male_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:10.775025",
+    "timestamp": "2025-08-19T00:19:47.814184",
     "action": "COLUMN_PROCESSED",
     "details": "Auckland_Male_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:10.828338",
+    "timestamp": "2025-08-19T00:19:47.865700",
     "action": "COLUMN_PROCESSED",
     "details": "Waikato_Male_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:10.882857",
+    "timestamp": "2025-08-19T00:19:47.916100",
     "action": "COLUMN_PROCESSED",
     "details": "Gisborne_Male_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:10.933807",
+    "timestamp": "2025-08-19T00:19:47.965445",
     "action": "COLUMN_PROCESSED",
     "details": "Taranaki_Male_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:10.983921",
+    "timestamp": "2025-08-19T00:19:48.014161",
     "action": "COLUMN_PROCESSED",
     "details": "Wellington_Male_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.030001",
+    "timestamp": "2025-08-19T00:19:48.058887",
     "action": "COLUMN_PROCESSED",
     "details": "Marlborough_Male_unemployment_rate: 0.0% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.073290",
+    "timestamp": "2025-08-19T00:19:48.101511",
     "action": "COLUMN_PROCESSED",
     "details": "Canterbury_Male_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.120115",
-    "action": "COLUMN_PROCESSED",
-    "details": "Otago_Male_unemployment_rate: 83.1% complete",
-    "severity": "INFO"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:11.157882",
+    "timestamp": "2025-08-19T00:19:48.147653",
     "action": "COLUMN_PROCESSED",
     "details": "Southland_Male_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.199355",
+    "timestamp": "2025-08-19T00:19:48.185189",
+    "action": "COLUMN_PROCESSED",
+    "details": "Otago_Male_unemployment_rate: 83.1% complete",
+    "severity": "INFO"
+  },
+  {
+    "timestamp": "2025-08-19T00:19:48.226629",
     "action": "COLUMN_PROCESSED",
     "details": "Northland_Female_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.236122",
+    "timestamp": "2025-08-19T00:19:48.269078",
     "action": "COLUMN_PROCESSED",
     "details": "Auckland_Female_unemployment_rate: 0.0% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.278202",
+    "timestamp": "2025-08-19T00:19:48.321558",
     "action": "COLUMN_PROCESSED",
     "details": "Waikato_Female_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.315983",
+    "timestamp": "2025-08-19T00:19:48.353994",
     "action": "COLUMN_PROCESSED",
     "details": "Gisborne_Female_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.354517",
+    "timestamp": "2025-08-19T00:19:48.387395",
     "action": "COLUMN_PROCESSED",
     "details": "Taranaki_Female_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.389231",
+    "timestamp": "2025-08-19T00:19:48.416867",
     "action": "COLUMN_PROCESSED",
     "details": "Wellington_Female_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.425896",
+    "timestamp": "2025-08-19T00:19:48.448031",
     "action": "COLUMN_PROCESSED",
     "details": "Marlborough_Female_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.458514",
+    "timestamp": "2025-08-19T00:19:48.475720",
     "action": "COLUMN_PROCESSED",
     "details": "Canterbury_Female_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.495020",
-    "action": "COLUMN_PROCESSED",
-    "details": "Otago_Female_unemployment_rate: 83.1% complete",
-    "severity": "INFO"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:11.525145",
+    "timestamp": "2025-08-19T00:19:48.503173",
     "action": "COLUMN_PROCESSED",
     "details": "Southland_Female_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.558198",
+    "timestamp": "2025-08-19T00:19:48.528254",
+    "action": "COLUMN_PROCESSED",
+    "details": "Otago_Female_unemployment_rate: 83.1% complete",
+    "severity": "INFO"
+  },
+  {
+    "timestamp": "2025-08-19T00:19:48.556497",
     "action": "COLUMN_PROCESSED",
     "details": "Northland_15-24_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.631321",
+    "timestamp": "2025-08-19T00:19:48.622877",
     "action": "COLUMN_PROCESSED",
     "details": "Auckland_15-24_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.711533",
+    "timestamp": "2025-08-19T00:19:48.700410",
     "action": "COLUMN_PROCESSED",
     "details": "Waikato_15-24_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.795350",
+    "timestamp": "2025-08-19T00:19:48.796739",
     "action": "COLUMN_PROCESSED",
     "details": "Gisborne_15-24_Years_unemployment_rate: 0.0% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.882380",
+    "timestamp": "2025-08-19T00:19:48.885928",
     "action": "COLUMN_PROCESSED",
     "details": "Taranaki_15-24_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:11.973803",
+    "timestamp": "2025-08-19T00:19:48.975278",
     "action": "COLUMN_PROCESSED",
     "details": "Wellington_15-24_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:12.069988",
+    "timestamp": "2025-08-19T00:19:49.077475",
     "action": "COLUMN_PROCESSED",
     "details": "Marlborough_15-24_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:12.168969",
+    "timestamp": "2025-08-19T00:19:49.197711",
     "action": "COLUMN_PROCESSED",
     "details": "Canterbury_15-24_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:12.267215",
+    "timestamp": "2025-08-19T00:19:49.306803",
     "action": "COLUMN_PROCESSED",
-    "details": "Otago_15-24_Years_unemployment_rate: 0.0% complete",
+    "details": "Southland_15-24_Years_unemployment_rate: 0.0% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:12.307786",
+    "timestamp": "2025-08-19T00:19:49.424417",
     "action": "COLUMN_PROCESSED",
-    "details": "Southland_15-24_Years_unemployment_rate: 83.1% complete",
+    "details": "Otago_15-24_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:12.406967",
+    "timestamp": "2025-08-19T00:19:49.482085",
     "action": "COLUMN_PROCESSED",
     "details": "Northland_25-54_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:12.506041",
+    "timestamp": "2025-08-19T00:19:49.593615",
     "action": "COLUMN_PROCESSED",
     "details": "Auckland_25-54_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:12.606312",
+    "timestamp": "2025-08-19T00:19:49.699845",
     "action": "COLUMN_PROCESSED",
     "details": "Waikato_25-54_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:12.712066",
+    "timestamp": "2025-08-19T00:19:49.811832",
     "action": "COLUMN_PROCESSED",
     "details": "Gisborne_25-54_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:12.823114",
+    "timestamp": "2025-08-19T00:19:49.921072",
     "action": "COLUMN_PROCESSED",
     "details": "Taranaki_25-54_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:12.942557",
+    "timestamp": "2025-08-19T00:19:50.030647",
     "action": "COLUMN_PROCESSED",
     "details": "Wellington_25-54_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:13.062734",
+    "timestamp": "2025-08-19T00:19:50.149307",
     "action": "COLUMN_PROCESSED",
     "details": "Marlborough_25-54_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:13.189278",
+    "timestamp": "2025-08-19T00:19:50.272460",
     "action": "COLUMN_PROCESSED",
     "details": "Canterbury_25-54_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:13.316624",
-    "action": "COLUMN_PROCESSED",
-    "details": "Otago_25-54_Years_unemployment_rate: 83.1% complete",
-    "severity": "INFO"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:13.370240",
+    "timestamp": "2025-08-19T00:19:50.399314",
     "action": "COLUMN_PROCESSED",
     "details": "Southland_25-54_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:13.501622",
+    "timestamp": "2025-08-19T00:19:50.527642",
+    "action": "COLUMN_PROCESSED",
+    "details": "Otago_25-54_Years_unemployment_rate: 83.1% complete",
+    "severity": "INFO"
+  },
+  {
+    "timestamp": "2025-08-19T00:19:50.583062",
     "action": "COLUMN_PROCESSED",
     "details": "Northland_55+_Years_unemployment_rate: 0.0% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:13.561668",
+    "timestamp": "2025-08-19T00:19:50.642668",
     "action": "COLUMN_PROCESSED",
     "details": "Auckland_55+_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:13.617337",
+    "timestamp": "2025-08-19T00:19:50.698064",
     "action": "COLUMN_PROCESSED",
     "details": "Waikato_55+_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:13.673233",
+    "timestamp": "2025-08-19T00:19:50.753182",
     "action": "COLUMN_PROCESSED",
     "details": "Gisborne_55+_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:13.725643",
+    "timestamp": "2025-08-19T00:19:50.804680",
     "action": "COLUMN_PROCESSED",
     "details": "Taranaki_55+_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:13.778266",
+    "timestamp": "2025-08-19T00:19:50.854732",
     "action": "COLUMN_PROCESSED",
     "details": "Wellington_55+_Years_unemployment_rate: 0.0% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:13.894961",
+    "timestamp": "2025-08-19T00:19:50.967155",
     "action": "COLUMN_PROCESSED",
     "details": "Marlborough_55+_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:14.009780",
+    "timestamp": "2025-08-19T00:19:51.079410",
     "action": "COLUMN_PROCESSED",
     "details": "Canterbury_55+_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:14.123488",
-    "action": "COLUMN_PROCESSED",
-    "details": "Otago_55+_Years_unemployment_rate: 83.1% complete",
-    "severity": "INFO"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:14.176936",
+    "timestamp": "2025-08-19T00:19:51.193445",
     "action": "COLUMN_PROCESSED",
     "details": "Southland_55+_Years_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:14.298941",
+    "timestamp": "2025-08-19T00:19:51.304240",
+    "action": "COLUMN_PROCESSED",
+    "details": "Otago_55+_Years_unemployment_rate: 83.1% complete",
+    "severity": "INFO"
+  },
+  {
+    "timestamp": "2025-08-19T00:19:51.355067",
     "action": "COLUMN_PROCESSED",
     "details": "Northland_Total_All_Ages_unemployment_rate: 83.1% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:14.428814",
+    "timestamp": "2025-08-19T00:19:51.477905",
     "action": "DATA_CLEANED",
     "details": "Cleaned data: 157 rows (36 removed)",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:14.514177",
+    "timestamp": "2025-08-19T00:19:51.741590",
     "action": "FILE_SAVED",
     "details": "Saved to data_cleaned\\cleaned_Sex Regional Council.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:14.563278",
+    "timestamp": "2025-08-19T00:19:51.823351",
     "action": "FILE_COMPLETED",
     "details": "\u2705 Successfully processed Sex Regional Council.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:14.625780",
+    "timestamp": "2025-08-19T00:19:51.875187",
     "action": "FILE_PROCESSING",
     "details": "Starting CPI All Groups.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:14.701749",
+    "timestamp": "2025-08-19T00:19:51.923820",
     "action": "PROCESSING_START",
     "details": "Processing CPI data: CPI All Groups.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:14.753776",
+    "timestamp": "2025-08-19T00:19:51.978449",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table information:: invalid literal for int() with base 10: 'Table information:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:14.859907",
+    "timestamp": "2025-08-19T00:19:52.081575",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Units:: invalid literal for int() with base 10: 'Units:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:14.961855",
+    "timestamp": "2025-08-19T00:19:52.183271",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Index, Magnitude = Units: invalid literal for int() with base 10: 'Index, Magnitude = Units'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:15.072222",
+    "timestamp": "2025-08-19T00:19:52.283589",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Footnotes:: invalid literal for int() with base 10: 'Footnotes:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:15.188313",
+    "timestamp": "2025-08-19T00:19:52.387351",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse From the September 1999 quarter residential sections and interest are excluded.: invalid literal for int() with base 10: 'From the September 1999 quarter residential sections and interest are excluded.'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:15.309488",
+    "timestamp": "2025-08-19T00:19:52.497110",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Percentage changes are calculated from index numbers which are unrounded prior to the June 2017 quarter.: invalid literal for int() with base 10: 'Percentage changes are calculated from index numbers which are unrounded prior to the June 2017 quarter.'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:15.417597",
+    "timestamp": "2025-08-19T00:19:52.604968",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Base: June 2017 quarter (=1000).: invalid literal for int() with base 10: 'Base: June 2017 quarter (=1000).'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:15.522191",
+    "timestamp": "2025-08-19T00:19:52.702733",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse From the September 2006 quarter, prices for fresh fruit and vegetables are seasonally unadjusted. They were seasonally adjusted until the June 2006 quarter.: invalid literal for int() with base 10: 'From the September 2006 quarter, prices for fresh fruit and vegetables are seasonally unadjusted. They were seasonally adjusted until the June 2006 quarter.'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:15.638673",
+    "timestamp": "2025-08-19T00:19:52.814037",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Symbols:: invalid literal for int() with base 10: 'Symbols:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:15.737029",
+    "timestamp": "2025-08-19T00:19:52.910927",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse .. figure not available: invalid literal for int() with base 10: '.. figure not available'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:15.848502",
+    "timestamp": "2025-08-19T00:19:53.016732",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse C: Confidential: invalid literal for int() with base 10: 'C: Confidential'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:15.951208",
+    "timestamp": "2025-08-19T00:19:53.117197",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse E: Early Estimate: invalid literal for int() with base 10: 'E: Early Estimate'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:16.055074",
+    "timestamp": "2025-08-19T00:19:53.219377",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse P: Provisional: invalid literal for int() with base 10: 'P: Provisional'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:16.177875",
+    "timestamp": "2025-08-19T00:19:53.331828",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse R: Revised: invalid literal for int() with base 10: 'R: Revised'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:16.299953",
+    "timestamp": "2025-08-19T00:19:53.448384",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse S: Suppressed: invalid literal for int() with base 10: 'S: Suppressed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:16.422251",
+    "timestamp": "2025-08-19T00:19:53.570414",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Status flags are not displayed: invalid literal for int() with base 10: 'Status flags are not displayed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:16.552528",
+    "timestamp": "2025-08-19T00:19:53.695174",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table reference:: invalid literal for int() with base 10: 'Table reference:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:16.683281",
+    "timestamp": "2025-08-19T00:19:53.828170",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse CPI009AA: invalid literal for int() with base 10: 'CPI009AA'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:16.812032",
+    "timestamp": "2025-08-19T00:19:53.951231",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Last updated:: invalid literal for int() with base 10: 'Last updated:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:16.938894",
+    "timestamp": "2025-08-19T00:19:54.073006",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse 21 July 2025 10:45am: invalid literal for int() with base 10: '21 July 2025 10:45am'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:17.071137",
+    "timestamp": "2025-08-19T00:19:54.198770",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Source: Statistics New Zealand: invalid literal for int() with base 10: 'Source: Statistics New Zealand'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:17.204139",
+    "timestamp": "2025-08-19T00:19:54.339420",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Contact: Information Centre: invalid literal for int() with base 10: 'Contact: Information Centre'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:17.336993",
+    "timestamp": "2025-08-19T00:19:54.464325",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Telephone: 0508 525 525: invalid literal for int() with base 10: 'Telephone: 0508 525 525'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:17.480757",
+    "timestamp": "2025-08-19T00:19:54.595407",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Email:info@stats.govt.nz: invalid literal for int() with base 10: 'Email:info@stats.govt.nz'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:17.622782",
+    "timestamp": "2025-08-19T00:19:54.727152",
     "action": "ZERO_VALUES_REMOVED",
     "details": "Removed 60 zero/invalid values",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:17.681466",
+    "timestamp": "2025-08-19T00:19:54.781642",
     "action": "CPI_CLEANED",
     "details": "CPI data: 418 valid records from 1914-04-01 00:00:00 to 2025-04-01 00:00:00",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:17.855493",
+    "timestamp": "2025-08-19T00:19:55.136220",
     "action": "FILE_COMPLETED",
     "details": "\u2705 Successfully processed CPI All Groups.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:17.940291",
+    "timestamp": "2025-08-19T00:19:55.214228",
     "action": "FILE_PROCESSING",
     "details": "Starting CPI Regional All Groups.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:18.036551",
+    "timestamp": "2025-08-19T00:19:55.271632",
     "action": "PROCESSING_START",
     "details": "Processing Regional CPI data: CPI Regional All Groups.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:18.174773",
+    "timestamp": "2025-08-19T00:19:55.401328",
     "action": "DYNAMIC_CPI_REGIONS",
     "details": "Detected 3 CPI regions",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:18.235454",
+    "timestamp": "2025-08-19T00:19:55.459172",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table information:: invalid literal for int() with base 10: 'Table information:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:18.365697",
+    "timestamp": "2025-08-19T00:19:55.588039",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Units:: invalid literal for int() with base 10: 'Units:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:18.494841",
+    "timestamp": "2025-08-19T00:19:55.715416",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Index, Magnitude = Units: invalid literal for int() with base 10: 'Index, Magnitude = Units'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:18.623149",
+    "timestamp": "2025-08-19T00:19:55.851659",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Footnotes:: invalid literal for int() with base 10: 'Footnotes:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:18.762881",
+    "timestamp": "2025-08-19T00:19:55.975516",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Base: June 2017 quarter (=1000).: invalid literal for int() with base 10: 'Base: June 2017 quarter (=1000).'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:18.889845",
+    "timestamp": "2025-08-19T00:19:56.097924",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse From the September 2006 quarter, prices for fresh fruit and vegetables are seasonally unadjusted. They were seasonally adjusted until the June 2006 quarter.: invalid literal for int() with base 10: 'From the September 2006 quarter, prices for fresh fruit and vegetables are seasonally unadjusted. They were seasonally adjusted until the June 2006 quarter.'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:19.031266",
+    "timestamp": "2025-08-19T00:19:56.225619",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Symbols:: invalid literal for int() with base 10: 'Symbols:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:19.153340",
+    "timestamp": "2025-08-19T00:19:56.339411",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse .. figure not available: invalid literal for int() with base 10: '.. figure not available'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:19.277955",
+    "timestamp": "2025-08-19T00:19:56.452728",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse C: Confidential: invalid literal for int() with base 10: 'C: Confidential'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:19.401475",
+    "timestamp": "2025-08-19T00:19:56.567842",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse E: Early Estimate: invalid literal for int() with base 10: 'E: Early Estimate'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:19.519346",
+    "timestamp": "2025-08-19T00:19:56.697325",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse P: Provisional: invalid literal for int() with base 10: 'P: Provisional'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:19.647275",
+    "timestamp": "2025-08-19T00:19:56.821809",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse R: Revised: invalid literal for int() with base 10: 'R: Revised'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:19.786299",
+    "timestamp": "2025-08-19T00:19:56.938964",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse S: Suppressed: invalid literal for int() with base 10: 'S: Suppressed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:19.917011",
+    "timestamp": "2025-08-19T00:19:57.061570",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Status flags are not displayed: invalid literal for int() with base 10: 'Status flags are not displayed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:20.044675",
+    "timestamp": "2025-08-19T00:19:57.183832",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table reference:: invalid literal for int() with base 10: 'Table reference:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:20.178275",
+    "timestamp": "2025-08-19T00:19:57.306873",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse CPI008AA: invalid literal for int() with base 10: 'CPI008AA'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:20.313652",
+    "timestamp": "2025-08-19T00:19:57.429438",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Last updated:: invalid literal for int() with base 10: 'Last updated:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:20.454472",
+    "timestamp": "2025-08-19T00:19:57.556283",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse 21 July 2025 10:45am: invalid literal for int() with base 10: '21 July 2025 10:45am'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:20.589896",
+    "timestamp": "2025-08-19T00:19:57.688553",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Source: Statistics New Zealand: invalid literal for int() with base 10: 'Source: Statistics New Zealand'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:20.725607",
+    "timestamp": "2025-08-19T00:19:57.832359",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Contact: Information Centre: invalid literal for int() with base 10: 'Contact: Information Centre'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:20.865585",
+    "timestamp": "2025-08-19T00:19:57.964076",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Telephone: 0508 525 525: invalid literal for int() with base 10: 'Telephone: 0508 525 525'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.005776",
+    "timestamp": "2025-08-19T00:19:58.108392",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Email:info@stats.govt.nz: invalid literal for int() with base 10: 'Email:info@stats.govt.nz'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.143051",
+    "timestamp": "2025-08-19T00:19:58.253671",
     "action": "REGIONAL_CPI_PROCESSED",
     "details": "Auckland: 71.3% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.198017",
+    "timestamp": "2025-08-19T00:19:58.309019",
     "action": "REGIONAL_CPI_PROCESSED",
     "details": "Wellington: 71.3% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.262513",
+    "timestamp": "2025-08-19T00:19:58.366947",
     "action": "REGIONAL_CPI_PROCESSED",
     "details": "Canterbury: 71.3% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.318061",
+    "timestamp": "2025-08-19T00:19:58.421191",
     "action": "REGIONAL_CPI_PROCESSED",
     "details": "unknown_col_4: 71.3% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.376682",
+    "timestamp": "2025-08-19T00:19:58.478008",
     "action": "REGIONAL_CPI_PROCESSED",
     "details": "unknown_col_5: 70.4% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.430481",
+    "timestamp": "2025-08-19T00:19:58.531215",
     "action": "REGIONAL_CPI_PROCESSED",
     "details": "unknown_col_6: 71.3% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.487578",
+    "timestamp": "2025-08-19T00:19:58.586659",
     "action": "REGIONAL_CPI_PROCESSED",
     "details": "unknown_col_7: 71.3% complete",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.535779",
+    "timestamp": "2025-08-19T00:19:58.633401",
     "action": "CPI_REGIONAL_CLEANED",
     "details": "Regional CPI data: 77 records with 7 regions",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.590312",
+    "timestamp": "2025-08-19T00:19:58.687588",
     "action": "FILE_COMPLETED",
     "details": "\u2705 Successfully processed CPI Regional All Groups.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.633836",
+    "timestamp": "2025-08-19T00:19:58.733170",
     "action": "FILE_PROCESSING",
     "details": "Starting GDP All Industries.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.702505",
+    "timestamp": "2025-08-19T00:19:58.784347",
     "action": "PROCESSING_START",
     "details": "Processing GDP data: GDP All Industries.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.742288",
+    "timestamp": "2025-08-19T00:19:58.827414",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table information:: invalid literal for int() with base 10: 'Table information:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.848030",
+    "timestamp": "2025-08-19T00:19:58.926826",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Units:: invalid literal for int() with base 10: 'Units:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:21.952627",
+    "timestamp": "2025-08-19T00:19:59.026495",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse $, Magnitude = Millions: invalid literal for int() with base 10: '$, Magnitude = Millions'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:22.061222",
+    "timestamp": "2025-08-19T00:19:59.129109",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Footnotes:: invalid literal for int() with base 10: 'Footnotes:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:22.172513",
+    "timestamp": "2025-08-19T00:19:59.256526",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Tasman and Nelson regions have been combined to maintain data quality standards.: invalid literal for int() with base 10: 'Tasman and Nelson regions have been combined to maintain data quality standards.'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:22.290465",
+    "timestamp": "2025-08-19T00:19:59.369974",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Chatham Islands has been combined with Canterbury to maintain data quality standards.: invalid literal for int() with base 10: 'Chatham Islands has been combined with Canterbury to maintain data quality standards.'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:22.401349",
+    "timestamp": "2025-08-19T00:19:59.480729",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Figures may not sum to totals due to rounding.: invalid literal for int() with base 10: 'Figures may not sum to totals due to rounding.'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:22.496875",
+    "timestamp": "2025-08-19T00:19:59.582593",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Some ANZSIC 2006 industries have been combined to maintain data quality standards.: invalid literal for int() with base 10: 'Some ANZSIC 2006 industries have been combined to maintain data quality standards.'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:22.600180",
+    "timestamp": "2025-08-19T00:19:59.680809",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse The Accommodation and Food Services (RNAA.SG01NAC34B01__GH2) series have been discontinued and replaced by Accommodation (RNAA.SG01NAC34B01__GH3) and Food and Beverage Services (RNAA.SG01NAC34B01__GH4), for all years from 2000.: invalid literal for int() with base 10: 'The Accommodation and Food Services (RNAA.SG01NAC34B01__GH2) series have been discontinued and replaced by Accommodation (RNAA.SG01NAC34B01__GH3) and Food and Beverage Services (RNAA.SG01NAC34B01__GH",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:22.693660",
+    "timestamp": "2025-08-19T00:19:59.769460",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Symbols:: invalid literal for int() with base 10: 'Symbols:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:22.777612",
+    "timestamp": "2025-08-19T00:19:59.851528",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse .. figure not available: invalid literal for int() with base 10: '.. figure not available'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:22.871757",
+    "timestamp": "2025-08-19T00:19:59.945447",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse C: Confidential: invalid literal for int() with base 10: 'C: Confidential'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:22.967599",
+    "timestamp": "2025-08-19T00:20:00.040033",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse E: Early Estimate: invalid literal for int() with base 10: 'E: Early Estimate'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:23.073078",
+    "timestamp": "2025-08-19T00:20:00.143014",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse P: Provisional: invalid literal for int() with base 10: 'P: Provisional'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:23.189668",
+    "timestamp": "2025-08-19T00:20:00.249066",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse R: Revised: invalid literal for int() with base 10: 'R: Revised'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:23.313492",
+    "timestamp": "2025-08-19T00:20:00.364680",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse S: Suppressed: invalid literal for int() with base 10: 'S: Suppressed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:23.430635",
+    "timestamp": "2025-08-19T00:20:00.478413",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Status flags are not displayed: invalid literal for int() with base 10: 'Status flags are not displayed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:23.547666",
+    "timestamp": "2025-08-19T00:20:00.591843",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table reference:: invalid literal for int() with base 10: 'Table reference:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:23.665618",
+    "timestamp": "2025-08-19T00:20:00.704676",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse RNA001AA: invalid literal for int() with base 10: 'RNA001AA'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:23.789057",
+    "timestamp": "2025-08-19T00:20:00.823809",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Last updated:: invalid literal for int() with base 10: 'Last updated:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:23.911044",
+    "timestamp": "2025-08-19T00:20:00.940651",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse 25 March 2025 10:45am: invalid literal for int() with base 10: '25 March 2025 10:45am'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:24.037526",
+    "timestamp": "2025-08-19T00:20:01.064413",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Source: Statistics New Zealand: invalid literal for int() with base 10: 'Source: Statistics New Zealand'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:24.164406",
+    "timestamp": "2025-08-19T00:20:01.186097",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Contact: Information Centre: invalid literal for int() with base 10: 'Contact: Information Centre'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:24.293329",
+    "timestamp": "2025-08-19T00:20:01.310652",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Telephone: 0508 525 525: invalid literal for int() with base 10: 'Telephone: 0508 525 525'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:24.424561",
+    "timestamp": "2025-08-19T00:20:01.438295",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Email:info@stats.govt.nz: invalid literal for int() with base 10: 'Email:info@stats.govt.nz'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:24.559945",
+    "timestamp": "2025-08-19T00:20:01.568848",
     "action": "DYNAMIC_GDP_REGIONS",
     "details": "Detected 10 GDP regions",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:24.622670",
+    "timestamp": "2025-08-19T00:20:01.630974",
     "action": "GDP_DATA_SAVED",
     "details": "Saved 25 GDP records",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:24.683559",
+    "timestamp": "2025-08-19T00:20:01.688699",
     "action": "FILE_COMPLETED",
     "details": "\u2705 Successfully processed GDP All Industries.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:24.755246",
+    "timestamp": "2025-08-19T00:20:01.742489",
     "action": "FILE_PROCESSING",
     "details": "Starting LCI All Sectors and Occupation Group.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:24.838079",
+    "timestamp": "2025-08-19T00:20:01.799573",
     "action": "PROCESSING_START",
     "details": "Processing LCI data: LCI All Sectors and Occupation Group.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:24.968662",
+    "timestamp": "2025-08-19T00:20:01.927029",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table information:: invalid literal for int() with base 10: 'Table information:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:25.094517",
+    "timestamp": "2025-08-19T00:20:02.049550",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Units:: invalid literal for int() with base 10: 'Units:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:25.218686",
+    "timestamp": "2025-08-19T00:20:02.171746",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Index, Magnitude = Units: invalid literal for int() with base 10: 'Index, Magnitude = Units'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:25.345378",
+    "timestamp": "2025-08-19T00:20:02.294010",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Footnotes:: invalid literal for int() with base 10: 'Footnotes:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:25.474090",
+    "timestamp": "2025-08-19T00:20:02.414903",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Base: June 2009 Quarter (=1000): invalid literal for int() with base 10: 'uarter (=1000)'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:25.609580",
+    "timestamp": "2025-08-19T00:20:02.544052",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Symbols:: invalid literal for int() with base 10: 'Symbols:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:25.743395",
+    "timestamp": "2025-08-19T00:20:02.676156",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse .. figure not available: invalid literal for int() with base 10: '.. figure not available'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:25.877033",
+    "timestamp": "2025-08-19T00:20:02.808418",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse C: Confidential: invalid literal for int() with base 10: 'C: Confidential'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:26.011526",
+    "timestamp": "2025-08-19T00:20:02.939242",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse E: Early Estimate: invalid literal for int() with base 10: 'E: Early Estimate'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:26.146792",
+    "timestamp": "2025-08-19T00:20:03.069138",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse P: Provisional: invalid literal for int() with base 10: 'P: Provisional'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:26.289704",
+    "timestamp": "2025-08-19T00:20:03.199353",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse R: Revised: invalid literal for int() with base 10: 'R: Revised'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:26.433840",
+    "timestamp": "2025-08-19T00:20:03.330505",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse S: Suppressed: invalid literal for int() with base 10: 'S: Suppressed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:26.575375",
+    "timestamp": "2025-08-19T00:20:03.460267",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Status flags are not displayed: invalid literal for int() with base 10: 'Status flags are not displayed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:26.714416",
+    "timestamp": "2025-08-19T00:20:03.590442",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table reference:: invalid literal for int() with base 10: 'Table reference:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:26.851585",
+    "timestamp": "2025-08-19T00:20:03.720393",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse LCI033AA: invalid literal for int() with base 10: 'LCI033AA'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:26.984850",
+    "timestamp": "2025-08-19T00:20:03.849726",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Last updated:: invalid literal for int() with base 10: 'Last updated:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:27.128062",
+    "timestamp": "2025-08-19T00:20:03.979298",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse 06 August 2025 10:45am: invalid literal for int() with base 10: '06 August 2025 10:45am'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:27.261358",
+    "timestamp": "2025-08-19T00:20:04.108027",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Source: Statistics New Zealand: invalid literal for int() with base 10: 'Source: Statistics New Zealand'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:27.408991",
+    "timestamp": "2025-08-19T00:20:04.240683",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Contact: Information Centre: invalid literal for int() with base 10: 'Contact: Information Centre'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:27.557948",
+    "timestamp": "2025-08-19T00:20:04.377681",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Telephone: 0508 525 525: invalid literal for int() with base 10: 'Telephone: 0508 525 525'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:27.708105",
+    "timestamp": "2025-08-19T00:20:04.514399",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Email:info@stats.govt.nz: invalid literal for int() with base 10: 'Email:info@stats.govt.nz'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:27.905953",
+    "timestamp": "2025-08-19T00:20:04.661698",
     "action": "FILE_COMPLETED",
     "details": "\u2705 Successfully processed LCI All Sectors and Occupation Group.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:28.087145",
+    "timestamp": "2025-08-19T00:20:04.777601",
     "action": "FILE_PROCESSING",
     "details": "Starting LCI All sectors and Industry Group.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:28.168124",
+    "timestamp": "2025-08-19T00:20:04.833592",
     "action": "PROCESSING_START",
     "details": "Processing LCI data: LCI All sectors and Industry Group.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:28.307592",
+    "timestamp": "2025-08-19T00:20:04.960029",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table information:: invalid literal for int() with base 10: 'Table information:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:28.439511",
+    "timestamp": "2025-08-19T00:20:05.086539",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Units:: invalid literal for int() with base 10: 'Units:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:28.578037",
+    "timestamp": "2025-08-19T00:20:05.212257",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Index, Magnitude = Units: invalid literal for int() with base 10: 'Index, Magnitude = Units'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:28.713225",
+    "timestamp": "2025-08-19T00:20:05.338063",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Footnotes:: invalid literal for int() with base 10: 'Footnotes:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:28.854229",
+    "timestamp": "2025-08-19T00:20:05.463223",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Base: June 2009 Quarter (=1000): invalid literal for int() with base 10: 'uarter (=1000)'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:28.993259",
+    "timestamp": "2025-08-19T00:20:05.588616",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse The measured sector (used in productivity statistics) is ANZSIC divisions A to K and P from 1978, and includes divisions LC (Business services) and Q (Personal and other community services) from 1996 onwards.: invalid literal for int() with base 10: ' (Personal and other community services) from 1996 onwards.'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:29.125442",
+    "timestamp": "2025-08-19T00:20:05.716299",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse The former measured sector (used in productivity statistics) is ANZSIC divisions A to K and P.: invalid literal for int() with base 10: 'The former measured sector (used in productivity statistics) is ANZSIC divisions A to K and P.'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:29.252282",
+    "timestamp": "2025-08-19T00:20:05.833421",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Symbols:: invalid literal for int() with base 10: 'Symbols:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:29.370588",
+    "timestamp": "2025-08-19T00:20:05.946191",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse .. figure not available: invalid literal for int() with base 10: '.. figure not available'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:29.491101",
+    "timestamp": "2025-08-19T00:20:06.059302",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse C: Confidential: invalid literal for int() with base 10: 'C: Confidential'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:29.614305",
+    "timestamp": "2025-08-19T00:20:06.171791",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse E: Early Estimate: invalid literal for int() with base 10: 'E: Early Estimate'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:29.747366",
+    "timestamp": "2025-08-19T00:20:06.293001",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse P: Provisional: invalid literal for int() with base 10: 'P: Provisional'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:29.871351",
+    "timestamp": "2025-08-19T00:20:06.412501",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse R: Revised: invalid literal for int() with base 10: 'R: Revised'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:30.008676",
+    "timestamp": "2025-08-19T00:20:06.531171",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse S: Suppressed: invalid literal for int() with base 10: 'S: Suppressed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:30.137276",
+    "timestamp": "2025-08-19T00:20:06.657129",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Status flags are not displayed: invalid literal for int() with base 10: 'Status flags are not displayed'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:30.268720",
+    "timestamp": "2025-08-19T00:20:06.777577",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Table reference:: invalid literal for int() with base 10: 'Table reference:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:30.412051",
+    "timestamp": "2025-08-19T00:20:06.902308",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse LCI028AA: invalid literal for int() with base 10: 'LCI028AA'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:30.550220",
+    "timestamp": "2025-08-19T00:20:07.029027",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Last updated:: invalid literal for int() with base 10: 'Last updated:'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:30.681860",
+    "timestamp": "2025-08-19T00:20:07.156671",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse All Industries Combined: 06 August 2025 10:45am: invalid literal for int() with base 10: 'All Industries Combined: 06 August 2025 10:45am'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:30.805790",
+    "timestamp": "2025-08-19T00:20:07.281420",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Source: Statistics New Zealand: invalid literal for int() with base 10: 'Source: Statistics New Zealand'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:30.935788",
+    "timestamp": "2025-08-19T00:20:07.405355",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Contact: Information Centre: invalid literal for int() with base 10: 'Contact: Information Centre'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:31.063555",
+    "timestamp": "2025-08-19T00:20:07.528422",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Telephone: 0508 525 525: invalid literal for int() with base 10: 'Telephone: 0508 525 525'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:31.196773",
+    "timestamp": "2025-08-19T00:20:07.651664",
     "action": "DATE_PARSE_ERROR",
     "details": "Failed to parse Email:info@stats.govt.nz: invalid literal for int() with base 10: 'Email:info@stats.govt.nz'",
     "severity": "WARNING"
   },
   {
-    "timestamp": "2025-08-14T16:27:31.388180",
+    "timestamp": "2025-08-19T00:20:08.850287",
     "action": "FILE_COMPLETED",
     "details": "\u2705 Successfully processed LCI All sectors and Industry Group.csv",
     "severity": "INFO"
   },
   {
-    "timestamp": "2025-08-14T16:27:31.541966",
-    "action": "FILE_PROCESSING",
-    "details": "Starting DPE Estimated Resident Population by Age and Sex.csv",
-    "severity": "INFO"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:31.697894",
-    "action": "PROCESSING_START",
-    "details": "Processing demographic data: DPE Estimated Resident Population by Age and Sex.csv",
-    "severity": "INFO"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:31.831832",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Table information:: invalid literal for int() with base 10: 'Table information:'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:31.963528",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Units:: invalid literal for int() with base 10: 'Units:'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:32.094836",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Number, Magnitude = Units: invalid literal for int() with base 10: 'Number, Magnitude = Units'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:32.223358",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Footnotes:: invalid literal for int() with base 10: 'Footnotes:'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:32.362196",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Due to rounding, individual figures may not sum to stated totals.: invalid literal for int() with base 10: 'Due to rounding, individual figures may not sum to stated totals.'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:32.496762",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse All population estimates at 30 June 2023 and beyond are based on the 2023 Estimated Resident Population (ERP).: invalid literal for int() with base 10: 'All population estimates at 30 June 2023 and beyond are based on the 2023 Estimated Resident Population (ERP).'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:32.631059",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Population estimates after 30 June 2018 have been revised to incorporate results from the 2023 Census and 2023 Post-enumeration Survey.: invalid literal for int() with base 10: 'Population estimates after 30 June 2018 have been revised to incorporate results from the 2023 Census and 2023 Post-enumeration Survey.'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:32.756191",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Estimates flagged as provisional are subject to revision, mainly to incorporate revisions to external (international) migration and birth estimates.: invalid literal for int() with base 10: 'Estimates flagged as provisional are subject to revision, mainly to incorporate revisions to external (international) migration and birth estimates.'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:32.868288",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Symbols:: invalid literal for int() with base 10: 'Symbols:'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:32.983377",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse .. figure not available: invalid literal for int() with base 10: '.. figure not available'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:33.090256",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse C: Confidential: invalid literal for int() with base 10: 'C: Confidential'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:33.207390",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse E: Early Estimate: invalid literal for int() with base 10: 'E: Early Estimate'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:33.322640",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse P: Provisional: invalid literal for int() with base 10: 'P: Provisional'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:33.442565",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse R: Revised: invalid literal for int() with base 10: 'R: Revised'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:33.578035",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse S: Suppressed: invalid literal for int() with base 10: 'S: Suppressed'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:33.700068",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Status flags are not displayed: invalid literal for int() with base 10: 'Status flags are not displayed'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:33.822960",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Table reference:: invalid literal for int() with base 10: 'Table reference:'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:33.945129",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse DPE054AA: invalid literal for int() with base 10: 'DPE054AA'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:34.069055",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Last updated:: invalid literal for int() with base 10: 'Last updated:'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:34.192257",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Total All Ages: 15 May 2025 10:45am: invalid literal for int() with base 10: 'Total All Ages: 15 May 2025 10:45am'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:34.309498",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Source: Statistics New Zealand: invalid literal for int() with base 10: 'Source: Statistics New Zealand'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:34.436077",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Contact: Information Centre: invalid literal for int() with base 10: 'Contact: Information Centre'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:34.562627",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Telephone: 0508 525 525: invalid literal for int() with base 10: 'Telephone: 0508 525 525'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:34.691492",
-    "action": "DATE_PARSE_ERROR",
-    "details": "Failed to parse Email:info@stats.govt.nz: invalid literal for int() with base 10: 'Email:info@stats.govt.nz'",
-    "severity": "WARNING"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:34.828313",
-    "action": "DYNAMIC_SEX_AGE",
-    "details": "Detected 4 sex categories, 12 age groups",
-    "severity": "INFO"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:34.915702",
-    "action": "DEMOGRAPHIC_DATA_SAVED",
-    "details": "Saved 136 records to data_cleaned\\cleaned_DPE Estimated Resident Population by Age and Sex.csv",
-    "severity": "INFO"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:35.047100",
-    "action": "FILE_COMPLETED",
-    "details": "\u2705 Successfully processed DPE Estimated Resident Population by Age and Sex.csv",
-    "severity": "INFO"
-  },
-  {
-    "timestamp": "2025-08-14T16:27:35.158398",
+    "timestamp": "2025-08-19T00:20:08.997751",
     "action": "AUDIT_GENERATION",
     "details": "Creating comprehensive audit report",
     "severity": "INFO"
