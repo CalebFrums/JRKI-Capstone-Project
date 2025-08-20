@@ -119,6 +119,8 @@ def load_integrated_data():
     # Load data
     try:
         df = pd.read_csv(data_path)
+        # Convert date column to datetime immediately after loading
+        df['date'] = pd.to_datetime(df['date'])
     except Exception as e:
         raise ValueError(f"Failed to load CSV file - file may be corrupted or wrong format: {e}")
     
