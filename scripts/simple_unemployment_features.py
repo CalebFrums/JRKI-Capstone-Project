@@ -16,10 +16,38 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import warnings
+import json
 
-def validate_dataset_schema(df, filepath):
+def load_config(config_file="simple_config.json"):
+    """Load configuration file with target regions"""
+    try:
+        config_path = Path(config_file)
+        if config_path.exists():
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+            return config
+        else:
+            print(f"⚠️ Config file {config_file} not found, using defaults")
+            return get_default_config()
+    except Exception as e:
+        print(f"⚠️ Error loading config: {e}, using defaults")
+        return get_default_config()
+
+def get_default_config():
+    """Fallback configuration if config file missing"""
+    return {
+        "regions": {
+            "unemployment_core": ["Auckland", "Wellington", "Canterbury"]
+        }
+    }
+
+def validate_dataset_schema(df, filepath, config=None):
     """Validate that the dataset is actually unemployment/economic data"""
     print("🔍 Validating dataset schema and content...")
+    
+    # Load config if not provided
+    if config is None:
+        config = load_config()
     
     errors = []
     warnings_list = []
@@ -75,8 +103,8 @@ def validate_dataset_schema(df, filepath):
         if date_span < 10:
             warnings_list.append(f"WARNING: Only {date_span} years of data - may be insufficient for forecasting")
     
-    # Check 6: Regional coverage validation
-    target_regions = ['auckland', 'wellington', 'canterbury']
+    # Check 6: Regional coverage validation (dynamic from config)
+    target_regions = [region.lower() for region in config.get('regions', {}).get('unemployment_core', ['Auckland', 'Wellington', 'Canterbury'])]
     found_regions = []
     for region in target_regions:
         region_cols = [col for col in df.columns if region in col.lower() and 'unemployment' in col.lower()]
@@ -84,7 +112,8 @@ def validate_dataset_schema(df, filepath):
             found_regions.append(region.capitalize())
     
     if len(found_regions) == 0:
-        errors.append("CRITICAL: No target regions (Auckland, Wellington, Canterbury) found in unemployment data")
+        region_names = ', '.join(config.get('regions', {}).get('unemployment_core', ['Auckland', 'Wellington', 'Canterbury']))
+        errors.append(f"CRITICAL: No target regions ({region_names}) found in unemployment data")
     
     # Print validation results
     if errors:
@@ -125,7 +154,8 @@ def load_integrated_data():
         raise ValueError(f"Failed to load CSV file - file may be corrupted or wrong format: {e}")
     
     # Validate dataset before processing
-    validate_dataset_schema(df, data_path)
+    config = load_config()
+    validate_dataset_schema(df, data_path, config)
     
     # Process dates
     if 'date' not in df.columns:
@@ -181,8 +211,9 @@ def create_essential_features(df):
     
     df_features = df.copy()
     
-    # Target regions for unemployment forecasting
-    target_regions = ['auckland', 'wellington', 'canterbury']
+    # Target regions for unemployment forecasting (dynamic from config)
+    config = load_config()
+    target_regions = [region.lower() for region in config.get('regions', {}).get('unemployment_core', ['Auckland', 'Wellington', 'Canterbury'])]
     unemployment_cols = [col for col in df.columns if 'unemployment' in col.lower()]
     
     # Essential lag features (1-2 lags only)
@@ -226,10 +257,12 @@ def create_essential_features(df):
     return df_features
 
 def create_regional_targets(df):
-    """Identify and validate target unemployment rates for 3 regions"""
+    """Identify and validate target unemployment rates for configured regions"""
     print("🎯 Identifying regional targets...")
     
-    target_regions = ['auckland', 'wellington', 'canterbury']
+    # Load target regions from config
+    config = load_config()
+    target_regions = [region.lower() for region in config.get('regions', {}).get('unemployment_core', ['Auckland', 'Wellington', 'Canterbury'])]
     unemployment_cols = [col for col in df.columns if 'unemployment' in col.lower()]
     
     regional_targets = {}
