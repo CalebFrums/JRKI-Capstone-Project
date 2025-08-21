@@ -1,0 +1,20 @@
+{
+  "regions": {
+    "unemployment_core": ["Auckland", "Wellington", "Canterbury"],
+    "gdp_all": ["Northland", "Auckland", "Waikato", "Bay_of_Plenty", "Gisborne", "Hawkes_Bay", "Taranaki", "Manawatu_Whanganui", "Wellington", "West_Coast", "Canterbury", "Otago", "Southland", "Marlborough", "Tasman_Nelson", "Total_North_Island", "Total_South_Island", "New_Zealand"],
+    "cpi_regional": ["Auckland", "Wellington", "Rest_North_Island", "North_Island", "Canterbury", "Rest_South_Island", "South_Island"],
+    "ethnic_subset": ["Northland", "Auckland", "Waikato", "Bay_of_Plenty", "Canterbury"]
+  },
+  "demographics": {
+    "age_groups_basic": ["15-24 Years", "25-54 Years", "55+ Years", "Total All Ages"],
+    "age_groups_detailed": ["15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65+"],
+    "sex_categories": ["Male", "Female", "Total_Both_Sexes"],
+    "ethnic_groups": ["European", "Maori", "Pacific_Peoples", "Asian"]
+  },
+  "auto_detection": {
+    "enabled": true,
+    "region_patterns": ["Auckland", "Wellington", "Canterbury", "Northland", "Waikato", "Bay.*Plenty", "Canterbury", "Otago"],
+    "age_patterns": ["\\d+-\\d+\\s*Years?", "\\d+\\+\\s*Years?", "Total.*Ages?"],
+    "fallback_to_config": true
+  }
+}
