@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 """
-ONE WEEK DATA CLEANING NIGHTMARE (That Actually Worked!)
-NZ Unemployment Forecasting Project - From Auckland-Only to Multi-Regional
+Comprehensive Data Cleaning Pipeline
+NZ Unemployment Forecasting System - Government Data Processing
 
-This script started as a desperate attempt to expand beyond Auckland and turned into
-a proper data cleaning pipeline. Not professional standard, but gets the job done!
-Learned more about pandas in one week than I thought humanly possible.
+This module provides robust data cleaning and preprocessing capabilities for 
+New Zealand government economic datasets. It handles multiple data formats,
+performs quality validation, and generates comprehensive audit reports.
+
+Features:
+- Dynamic region and demographic detection
+- Multi-format CSV processing with nested headers
+- Data quality assessment and reporting
+- Missing data handling and imputation strategies
+- Automated audit trail generation
 
 Author: Data Science Team
-Date: Data Processing Pipeline v1.0
+Version: Production v2.0
 """
 
 import pandas as pd
@@ -21,7 +28,13 @@ import warnings
 warnings.filterwarnings('ignore')
 
 class GovernmentDataCleaner:
-    """Data cleaning that somehow works with government CSV files (barely!)"""
+    """
+    Professional data cleaning system for New Zealand government economic datasets.
+    
+    This class provides comprehensive data cleaning capabilities designed specifically
+    for handling complex, multi-format government CSV files with robust error handling
+    and detailed audit trail generation.
+    """
     
     def __init__(self, source_dir=".", output_dir="data_cleaned", config_file="simple_config.json"):
         self.source_dir = Path(source_dir)
@@ -30,13 +43,13 @@ class GovernmentDataCleaner:
         self.audit_log = []
         self.data_quality_metrics = {}
         
-        # Load configuration to stop hardcoding everything like an amateur
+        # Load configuration parameters for dynamic processing
         self.config = self.load_config(config_file)
         
-        print("Data Cleaner Initialised (Finally Working!)")
-        print(f"Source: {self.source_dir}")
-        print(f"Output: {self.output_dir}")
-        print(f"Config: {config_file} (My sanity-saving discovery)")
+        print("Government Data Cleaner initialized successfully")
+        print(f"Source directory: {self.source_dir}")
+        print(f"Output directory: {self.output_dir}")
+        print(f"Configuration file: {config_file}")
     
     def load_config(self, config_file):
         """Load simple configuration file"""
@@ -72,12 +85,20 @@ class GovernmentDataCleaner:
         }
     
     def detect_regions_in_csv(self, filepath):
-        """Desperately trying to find region names in these mental CSV headers"""
+        """
+        Dynamically detect region names from CSV file headers and content.
+        
+        Args:
+            filepath (Path): Path to CSV file for region detection
+            
+        Returns:
+            list: Detected region names found in the dataset
+        """
         try:
             df_sample = pd.read_csv(filepath, nrows=5)
             detected_regions = []
             
-            # Check all possible region names from config (thank god for this!)
+            # Check all possible region names from configuration
             all_regions = set()
             for region_set in self.config["regions"].values():
                 all_regions.update(region_set)

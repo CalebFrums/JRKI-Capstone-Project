@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
 """
-Unemployment Forecasting Model Trainer
-NZ Unemployment Forecasting Project - Week 7 Final Implementation
+Comprehensive Model Training System
+NZ Unemployment Forecasting System - Multi-Algorithm Model Development
 
-Creates ARIMA, LSTM, and ensemble models for unemployment forecasting
-using the feature-engineered datasets for Auckland, Wellington, Canterbury.
+This module provides comprehensive machine learning model training capabilities
+for unemployment forecasting across New Zealand regions. Supports multiple
+algorithms including time series models, neural networks, ensemble methods,
+and regression techniques.
 
-Author: Team JRKI - Final Week 7 Model Training
-Date: Week 7 Implementation
+Features:
+- Multi-algorithm model training (ARIMA, LSTM, Random Forest, Gradient Boosting, Regression)
+- Regional-specific model optimization
+- Comprehensive performance evaluation and comparison
+- Automated model persistence and metadata generation
+- Production-ready model artifacts for forecasting pipeline
+
+Author: Data Science Team
+Version: Production v2.0
 """
 
 import pandas as pd
@@ -20,6 +29,8 @@ import pickle
 
 # ML Libraries
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
+from sklearn.preprocessing import PolynomialFeatures
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import statsmodels.api as sm
@@ -41,8 +52,20 @@ warnings.filterwarnings('ignore')
 
 class UnemploymentModelTrainer:
     """
-    Trains multiple forecasting models for NZ unemployment data
-    Focuses on Auckland, Wellington, Canterbury regions
+    Professional multi-algorithm model training system for unemployment forecasting.
+    
+    This class provides comprehensive machine learning model training capabilities
+    across multiple algorithms and regional targets. Designed for production use
+    in government forecasting applications with robust evaluation and persistence.
+    
+    Supported Models:
+    - ARIMA (AutoRegressive Integrated Moving Average)
+    - LSTM (Long Short-Term Memory Neural Networks)  
+    - Random Forest (Ensemble Method)
+    - Gradient Boosting (Advanced Ensemble)
+    - Linear Regression variants (Ridge, Lasso, ElasticNet, Polynomial)
+    
+    Target Regions: Auckland, Wellington, Canterbury
     """
     
     def __init__(self, data_dir="model_ready_data", models_dir="models", config_file="simple_config.json"):
@@ -63,7 +86,7 @@ class UnemploymentModelTrainer:
         self.model_performance = {}
         self.feature_importance = {}
         
-        print("Unemployment Model Trainer Initialized")
+        print("Multi-Algorithm Model Training System Initialized")
         print(f"Target Regions: {', '.join(self.target_regions)}")
         print(f"Data Directory: {self.data_dir}")
         print(f"Models Directory: {self.models_dir}")
@@ -312,15 +335,13 @@ class UnemploymentModelTrainer:
                 X_train, y_train, feature_cols = self.prepare_features(self.train_data, target_col)
                 X_val, y_val, _ = self.prepare_features(self.validation_data, target_col)
                 
-                if y_train.isna().sum() > len(y_train) * 0.95:  # Skip if >95% missing (was 50%)
+                if y_train.isna().sum() > len(y_train) * 0.95:  # Skip if >95% missing
                     print(f"WARNING Too much missing data for {region} ensemble models")
                     continue
                 
-                # Handle missing data more aggressively for ensemble models
-                # Forward fill, then backward fill, then use mean for remaining NaN
+                # Handle missing data
                 y_train_filled = y_train.ffill().bfill().fillna(y_train.mean())
                 X_train_filled = X_train.ffill().bfill().fillna(X_train.mean())
-                y_val_filled = y_val.ffill().bfill().fillna(y_train.mean())
                 
                 # Random Forest
                 rf = RandomForestRegressor(
@@ -379,6 +400,118 @@ class UnemploymentModelTrainer:
         self.model_performance['gradient_boosting'] = gb_performance
         
         print(f"\nEnsemble Training Complete: {len(rf_models)} RF, {len(gb_models)} GB models")
+
+    def train_regression_models(self):
+        """Train Linear, Ridge, Lasso, ElasticNet, and Polynomial regression models"""
+        print("\nTraining Regression Models...")
+        
+        linear_models = {}
+        ridge_models = {}
+        lasso_models = {}
+        elasticnet_models = {}
+        polynomial_models = {}
+        
+        linear_performance = {}
+        ridge_performance = {}
+        lasso_performance = {}
+        elasticnet_performance = {}
+        polynomial_performance = {}
+        
+        for target_col in self.target_columns:
+            region = target_col.replace('_Male_unemployment_rate', '')
+            print(f"\nTraining regression models for {region}...")
+            
+            try:
+                # Prepare data
+                X_train, y_train, feature_cols = self.prepare_features(self.train_data, target_col)
+                X_val, y_val, _ = self.prepare_features(self.validation_data, target_col)
+                
+                if y_train.isna().sum() > len(y_train) * 0.95:
+                    print(f"WARNING Too much missing data for {region} regression models")
+                    continue
+                
+                # Handle missing data
+                y_train_filled = y_train.ffill().bfill().fillna(y_train.mean())
+                X_train_filled = X_train.ffill().bfill().fillna(X_train.mean())
+                X_val_filled = X_val.ffill().bfill().fillna(X_train.mean())
+                
+                # Standardize features for regularized models
+                scaler = StandardScaler()
+                X_train_scaled = scaler.fit_transform(X_train_filled)
+                X_val_scaled = scaler.transform(X_val_filled)
+                
+                # 1. Linear Regression
+                linear = LinearRegression()
+                linear.fit(X_train_filled, y_train_filled)
+                linear_pred = linear.predict(X_val_filled)
+                linear_mae = mean_absolute_error(y_val, linear_pred)
+                linear_rmse = np.sqrt(mean_squared_error(y_val, linear_pred))
+                
+                # 2. Ridge Regression (L2)
+                ridge = Ridge(alpha=1.0, random_state=42)
+                ridge.fit(X_train_scaled, y_train_filled)
+                ridge_pred = ridge.predict(X_val_scaled)
+                ridge_mae = mean_absolute_error(y_val, ridge_pred)
+                ridge_rmse = np.sqrt(mean_squared_error(y_val, ridge_pred))
+                
+                # 3. Lasso Regression (L1)
+                lasso = Lasso(alpha=0.1, random_state=42, max_iter=2000)
+                lasso.fit(X_train_scaled, y_train_filled)
+                lasso_pred = lasso.predict(X_val_scaled)
+                lasso_mae = mean_absolute_error(y_val, lasso_pred)
+                lasso_rmse = np.sqrt(mean_squared_error(y_val, lasso_pred))
+                
+                # 4. ElasticNet (L1 + L2)
+                elasticnet = ElasticNet(alpha=0.1, l1_ratio=0.5, random_state=42, max_iter=2000)
+                elasticnet.fit(X_train_scaled, y_train_filled)
+                elasticnet_pred = elasticnet.predict(X_val_scaled)
+                elasticnet_mae = mean_absolute_error(y_val, elasticnet_pred)
+                elasticnet_rmse = np.sqrt(mean_squared_error(y_val, elasticnet_pred))
+                
+                # 5. Polynomial Regression (degree 2)
+                poly_features = PolynomialFeatures(degree=2, include_bias=False)
+                X_train_poly = poly_features.fit_transform(X_train_filled.iloc[:, :10])  # Use first 10 features to avoid explosion
+                X_val_poly = poly_features.transform(X_val_filled.iloc[:, :10])
+                
+                polynomial = LinearRegression()
+                polynomial.fit(X_train_poly, y_train_filled)
+                polynomial_pred = polynomial.predict(X_val_poly)
+                polynomial_mae = mean_absolute_error(y_val, polynomial_pred)
+                polynomial_rmse = np.sqrt(mean_squared_error(y_val, polynomial_pred))
+                
+                # Store models and performance
+                linear_models[region] = {'model': linear, 'scaler': None}
+                ridge_models[region] = {'model': ridge, 'scaler': scaler}
+                lasso_models[region] = {'model': lasso, 'scaler': scaler}
+                elasticnet_models[region] = {'model': elasticnet, 'scaler': scaler}
+                polynomial_models[region] = {'model': polynomial, 'poly_features': poly_features}
+                
+                linear_performance[region] = {'validation_mae': linear_mae, 'validation_rmse': linear_rmse, 'feature_count': len(feature_cols)}
+                ridge_performance[region] = {'validation_mae': ridge_mae, 'validation_rmse': ridge_rmse, 'feature_count': len(feature_cols)}
+                lasso_performance[region] = {'validation_mae': lasso_mae, 'validation_rmse': lasso_rmse, 'feature_count': len(feature_cols)}
+                elasticnet_performance[region] = {'validation_mae': elasticnet_mae, 'validation_rmse': elasticnet_rmse, 'feature_count': len(feature_cols)}
+                polynomial_performance[region] = {'validation_mae': polynomial_mae, 'validation_rmse': polynomial_rmse, 'feature_count': 10}
+                
+                print(f"TRAINED {region} - Linear MAE: {linear_mae:.3f}, Ridge MAE: {ridge_mae:.3f}, Lasso MAE: {lasso_mae:.3f}")
+                print(f"         ElasticNet MAE: {elasticnet_mae:.3f}, Polynomial MAE: {polynomial_mae:.3f}")
+                
+            except Exception as e:
+                print(f"ERROR Regression training failed for {region}: {e}")
+        
+        # Store all regression models
+        self.trained_models['linear_regression'] = linear_models
+        self.trained_models['ridge_regression'] = ridge_models
+        self.trained_models['lasso_regression'] = lasso_models
+        self.trained_models['elasticnet_regression'] = elasticnet_models
+        self.trained_models['polynomial_regression'] = polynomial_models
+        
+        self.model_performance['linear_regression'] = linear_performance
+        self.model_performance['ridge_regression'] = ridge_performance
+        self.model_performance['lasso_regression'] = lasso_performance
+        self.model_performance['elasticnet_regression'] = elasticnet_performance
+        self.model_performance['polynomial_regression'] = polynomial_performance
+        
+        print(f"\nRegression Training Complete: {len(linear_models)} models per type")
 
     def evaluate_models(self):
         """Evaluate all models on test set"""
@@ -502,7 +635,7 @@ class UnemploymentModelTrainer:
             best_mae = np.inf
             best_model = None
             
-            for model_type in ['arima', 'random_forest', 'gradient_boosting']:
+            for model_type in ['arima', 'random_forest', 'gradient_boosting', 'linear_regression', 'ridge_regression', 'lasso_regression', 'elasticnet_regression', 'polynomial_regression']:
                 if (region in self.model_performance.get(model_type, {}) and 
                     'validation_mae' in self.model_performance[model_type][region]):
                     mae = self.model_performance[model_type][region]['validation_mae']
@@ -554,7 +687,10 @@ class UnemploymentModelTrainer:
         # Step 4: Train Ensemble Models
         self.train_ensemble_models()
         
-        # Step 5: Evaluate on Test Set
+        # Step 5: Train Regression Models
+        self.train_regression_models()
+        
+        # Step 6: Evaluate on Test Set
         self.evaluate_models()
         
         # Step 6: Save Everything

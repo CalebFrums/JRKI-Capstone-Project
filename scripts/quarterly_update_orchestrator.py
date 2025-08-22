@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """
-Quarterly Update Orchestrator
-Unemployment Forecasting System - Automated Quarterly Data Integration
+Quarterly Update Orchestration System
+NZ Unemployment Forecasting System - Automated Production Pipeline
 
-This script orchestrates the entire quarterly update workflow:
-1. Data cleaning and integration
-2. Dynamic temporal splitting with rolling windows
-3. Automated model retraining
-4. Updated forecast generation
-5. Performance monitoring and alerts
+This module provides comprehensive orchestration for the quarterly data update
+and model refresh cycle. Designed for autonomous operation with comprehensive
+error handling, backup procedures, and validation reporting.
+
+Workflow Components:
+1. Automated data backup and version control
+2. Multi-stage data cleaning and integration pipeline
+3. Dynamic temporal data splitting with anti-leakage controls
+4. Multi-algorithm model retraining and evaluation
+5. Production forecast generation and validation
+6. Comprehensive reporting and quality assurance
 
 Author: Data Science Team
-Date: Quarterly Update Automation v1.0
+Version: Production v2.0
 """
 
 import pandas as pd
@@ -25,7 +30,13 @@ import warnings
 warnings.filterwarnings('ignore')
 
 class QuarterlyUpdateOrchestrator:
-    """Orchestrate complete quarterly data update and model retraining"""
+    """
+    Professional quarterly update orchestration system for production forecasting pipeline.
+    
+    This class manages the complete quarterly data refresh and model update cycle,
+    providing automated backup, validation, error handling, and comprehensive reporting
+    for government-grade forecasting operations.
+    """
     
     def __init__(self, base_dir=".", backup_dir="quarterly_backups"):
         self.base_dir = Path(base_dir)
@@ -52,7 +63,8 @@ class QuarterlyUpdateOrchestrator:
             'models': Path('models')
         }
         
-        print(f"Quarterly Update Orchestrator initialized")
+        print("Quarterly Update Orchestration System initialized")
+        print(f"Working directory: {self.base_dir}")
         print(f"Backup location: {self.current_backup}")
         
     def create_backup(self):
