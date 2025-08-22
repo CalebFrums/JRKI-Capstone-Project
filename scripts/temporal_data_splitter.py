@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
 """
-Temporal Data Splitter with Proper Lag Feature Creation
-Unemployment Forecasting Project - Data Leakage Fix
+Temporal Data Splitting and Feature Engineering System
+NZ Unemployment Forecasting System - Anti-Leakage Data Preparation
 
-This script addresses the data leakage issue identified by proper ML methodology:
-- Performs temporal train/validation/test split FIRST
-- Creates lag features AFTER splitting using only available historical data
-- Ensures no future information leaks into training data
+This module provides methodologically correct temporal data splitting with
+proper feature engineering sequence to prevent data leakage. Designed for
+time series machine learning applications requiring strict chronological
+data handling.
 
-Author: Enhanced for Methodological Correctness
+Features:
+- Temporal train/validation/test splitting with chronological ordering
+- Lag feature creation AFTER splitting to prevent information leakage
+- Rolling window configuration for dynamic data periods
+- Comprehensive feature engineering with economic indicators
+- Quality assurance and validation reporting
+
+Author: Data Science Team
+Version: Production v2.0
 """
 
 import pandas as pd
@@ -17,7 +25,15 @@ from pathlib import Path
 import json
 
 class TemporalDataSplitter:
-    """Proper temporal splitting with lag features created after split"""
+    """
+    Professional temporal data splitting system with anti-leakage controls.
+    
+    This class provides methodologically sound temporal data splitting for time series
+    machine learning applications. Implements proper chronological splitting followed
+    by feature engineering to prevent future information leakage into training data.
+    
+    Key Innovation: Lag features created AFTER temporal splitting, not before.
+    """
     
     def __init__(self, data_dir="data_cleaned", output_dir="model_ready_data"):
         self.data_dir = Path(data_dir)
