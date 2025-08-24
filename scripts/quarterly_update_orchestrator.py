@@ -25,6 +25,7 @@ from pathlib import Path
 import json
 import subprocess
 import sys
+import time
 from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings('ignore')
@@ -39,8 +40,9 @@ class QuarterlyUpdateOrchestrator:
     """
     
     def __init__(self, base_dir=".", backup_dir="quarterly_backups"):
-        self.base_dir = Path(base_dir)
-        self.backup_dir = Path(backup_dir)
+        # Always use the directory where this script is located (Capstone directory)
+        self.base_dir = Path(__file__).parent.resolve()
+        self.backup_dir = self.base_dir / backup_dir
         self.backup_dir.mkdir(exist_ok=True)
         
         # Create timestamped backup folder
@@ -66,6 +68,34 @@ class QuarterlyUpdateOrchestrator:
         print("Quarterly Update Orchestration System initialized")
         print(f"Working directory: {self.base_dir}")
         print(f"Backup location: {self.current_backup}")
+    
+    def wait_for_file_operations(self, max_wait=10, check_interval=0.5):
+        """Wait for file system operations to complete after script execution"""
+        time.sleep(check_interval)  # Initial small delay for file system sync
+        
+    def retry_verification(self, verification_func, max_attempts=5, delay=2):
+        """Retry verification function with exponential backoff"""
+        for attempt in range(max_attempts):
+            try:
+                result = verification_func()
+                if result:  # If verification passes, return immediately
+                    return result
+                
+                if attempt < max_attempts - 1:  # Don't wait after last attempt
+                    wait_time = delay * (2 ** attempt)  # Exponential backoff: 2, 4, 8, 16 seconds
+                    print(f"   Verification attempt {attempt + 1} failed, retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                    
+            except Exception as e:
+                if attempt < max_attempts - 1:
+                    wait_time = delay * (2 ** attempt)
+                    print(f"   Verification error (attempt {attempt + 1}): {e}, retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                else:
+                    print(f"   Verification failed after {max_attempts} attempts: {e}")
+                    return False
+        
+        return False  # All attempts failed
         
     def create_backup(self):
         """Backup current model and data state before update"""
@@ -161,7 +191,7 @@ class QuarterlyUpdateOrchestrator:
         
         try:
             # Check integrated dataset
-            integrated_path = Path('data_cleaned/integrated_forecasting_dataset.csv')
+            integrated_path = self.base_dir / 'data_cleaned/integrated_forecasting_dataset.csv'
             if integrated_path.exists():
                 df = pd.read_csv(integrated_path)
                 df['date'] = pd.to_datetime(df['date'])
@@ -197,7 +227,7 @@ class QuarterlyUpdateOrchestrator:
         print("="*60)
         
         try:
-            models_dir = Path('models')
+            models_dir = self.base_dir / 'models'
             if not models_dir.exists():
                 print(f"[ERROR] Models directory not found")
                 return False
@@ -248,8 +278,8 @@ class QuarterlyUpdateOrchestrator:
             "backup_location": str(self.current_backup),
             "pipeline_execution": pipeline_results,
             "verification_results": {
-                "data_verification": self.verify_data_update(),
-                "model_verification": self.verify_model_update()
+                "data_verification": self.retry_verification(self.verify_data_update),
+                "model_verification": self.retry_verification(self.verify_model_update)
             }
         }
         
@@ -313,6 +343,9 @@ class QuarterlyUpdateOrchestrator:
             pipeline_results['forecast_generation'] = {'success': success, 'output': output}
             if not success:
                 raise Exception("Forecast generation failed")
+            
+            # Allow time for all file operations to complete
+            self.wait_for_file_operations()
             
             # Step 5: Verification and reporting
             print("\n" + "="*60)

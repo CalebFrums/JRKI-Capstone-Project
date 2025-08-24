@@ -34,11 +34,10 @@ class SimpleTimeSeriesAligner:
     """
     
     def __init__(self, data_dir="data_cleaned", output_dir="data_cleaned"):
-        self.data_dir = Path(data_dir)
-        self.output_dir = Path(output_dir)
-        print("Time Series Integration System initialized")
-        print(f"Input directory: {self.data_dir}")
-        print(f"Output directory: {self.output_dir}")
+        self.data_dir = Path(data_dir).resolve()
+        self.output_dir = Path(output_dir).resolve()
+        self.output_dir.mkdir(exist_ok=True)
+        print(f"Time Series Aligner: {self.data_dir} -> {self.output_dir}")
     
     def validate_cleaned_file(self, filepath):
         """Validate that a cleaned CSV file has expected structure"""
@@ -218,11 +217,84 @@ class SimpleTimeSeriesAligner:
         
         return start_date, end_date
     
-    def create_master_timeline(self, start_date, end_date):
-        """Create quarterly timeline"""
+    def create_master_timeline(self, start_date, end_date, datasets):
+        """Create quarterly timeline respecting natural data frequencies"""
+        # Use quarterly as the master frequency to avoid artificial repetition
+        # Quarterly is appropriate as unemployment is naturally reported quarterly
         timeline = pd.date_range(start=start_date, end=end_date, freq='QS')
-        print(f"Master timeline: {len(timeline)} quarterly periods")
+        print(f"Master timeline: {len(timeline)} quarterly periods (respecting natural frequencies)")
+        
         return timeline
+    
+    def align_data_to_timeline(self, df, master_timeline, filename):
+        """Align data to quarterly timeline, properly handling different frequencies"""
+        # Determine data frequency
+        is_monthly_data = any(keyword in filename for keyword in ['MEI', 'ECT'])
+        is_annual_data = 'BUO' in filename
+        is_quarterly_data = any(keyword in filename for keyword in ['HLF', 'QEM']) or not (is_monthly_data or is_annual_data)
+        
+        # Handle annual data alignment - spread to quarters within each year
+        if is_annual_data:
+            print(f"   - Handling annual {filename} data (spreading to quarters)")
+            aligned_df = pd.DataFrame({'date': master_timeline})
+            
+            # Get actual data date range to avoid spreading outside real data period
+            if len(df) > 0:
+                data_start_year = df['date'].dt.year.min()
+                data_end_year = df['date'].dt.year.max()
+                print(f"     Annual data available for years: {data_start_year}-{data_end_year}")
+            else:
+                print(f"     WARNING: No valid data rows in {filename}")
+                return aligned_df
+            
+            for col in df.columns:
+                if col != 'date':
+                    # Create annual mapping
+                    annual_mapping = {}
+                    for _, row in df.iterrows():
+                        if pd.notna(row['date']) and pd.notna(row[col]):
+                            year = row['date'].year
+                            annual_mapping[year] = row[col]
+                    
+                    # Apply annual values ONLY to quarters within actual data range
+                    quarterly_values = []
+                    for date in master_timeline:
+                        year = date.year
+                        # Only spread data within the actual annual data range
+                        if data_start_year <= year <= data_end_year and year in annual_mapping:
+                            quarterly_values.append(annual_mapping[year])
+                        else:
+                            quarterly_values.append(np.nan)
+                    
+                    aligned_df[col] = quarterly_values
+        
+        # Handle monthly data - aggregate to quarters (no artificial repetition)
+        elif is_monthly_data:
+            print(f"   - Aggregating monthly {filename} to quarterly timeline")
+            df_copy = df.copy()
+            df_copy['quarter'] = df_copy['date'].dt.to_period('Q').dt.start_time
+            
+            # Aggregate by taking mean of monthly values in each quarter
+            aligned_df = pd.DataFrame({'date': master_timeline})
+            for col in df_copy.columns:
+                if col != 'date' and col != 'quarter':
+                    quarterly_col = df_copy.groupby('quarter')[col].mean().reset_index()
+                    quarterly_col.rename(columns={'quarter': 'date'}, inplace=True)
+                    aligned_df = aligned_df.merge(quarterly_col, on='date', how='left')
+        
+        # Handle quarterly data - direct alignment (no frequency conversion)
+        elif is_quarterly_data:
+            print(f"   - Direct quarterly alignment for {filename}")
+            aligned_df = pd.DataFrame({'date': master_timeline})
+            aligned_df = aligned_df.merge(df, on='date', how='left')
+        
+        # Default case - direct alignment
+        else:
+            print(f"   - Default alignment for {filename}")
+            aligned_df = pd.DataFrame({'date': master_timeline})
+            aligned_df = aligned_df.merge(df, on='date', how='left')
+        
+        return aligned_df
     
     def basic_missing_data_fill(self, df):
         """Realistic time series filling for government data with gaps"""
@@ -261,7 +333,7 @@ class SimpleTimeSeriesAligner:
         
         # Step 2: Get date range and create master timeline
         start_date, end_date = self.get_date_range(datasets)
-        master_timeline = self.create_master_timeline(start_date, end_date)
+        master_timeline = self.create_master_timeline(start_date, end_date, datasets)
         
         # Step 3: Create base dataframe
         integrated = pd.DataFrame({'date': master_timeline})
@@ -295,13 +367,17 @@ class SimpleTimeSeriesAligner:
             
             print(f"   OK {filename}: Best variable {best_completion:.1%} complete")
             
+            # Align data to master timeline (handles monthly/quarterly conversion)
+            aligned_df = self.align_data_to_timeline(clean_df, master_timeline, filename)
+            
             # Apply missing data filling
-            clean_df = self.basic_missing_data_fill(clean_df)
+            # NO DATA FILL HERE - preserve missing values to prevent data leakage
+            # Data imputation will happen AFTER temporal splitting in temporal_data_splitter
             
             # Merge with integrated dataset using descriptive suffixes
             # Extract dataset identifier for suffix
             dataset_id = filename.replace('cleaned_', '').replace('.csv', '').replace(' ', '_')[:10]
-            integrated = integrated.merge(clean_df, on='date', how='left', suffixes=('', f'_{dataset_id}'))
+            integrated = integrated.merge(aligned_df, on='date', how='left', suffixes=('', f'_{dataset_id}'))
             
             # Track what we added
             if any(keyword in filename.lower() for keyword in ['age group', 'sex', 'ethnic']):
@@ -409,6 +485,17 @@ class SimpleTimeSeriesAligner:
             
             # Generate quality report
             quality_report = self.calculate_data_quality_report(integrated_df)
+            
+            # Final cleanup: Handle trailing NaN values in unemployment targets  
+            unemployment_cols = [col for col in integrated_df.columns if 'unemployment_rate' in col]
+            print(f"\nFinal cleanup: smoothing {len(unemployment_cols)} unemployment columns...")
+            
+            for col in unemployment_cols:
+                if col in integrated_df.columns:
+                    # Forward fill recent NaN values (up to 2 quarters)
+                    integrated_df[col] = integrated_df[col].ffill(limit=2)
+                    
+            print("   Applied forward-fill smoothing for recent missing quarters")
             
             # Save outputs
             output_file = self.output_dir / "integrated_forecasting_dataset.csv"

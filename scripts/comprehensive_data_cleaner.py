@@ -36,9 +36,9 @@ class GovernmentDataCleaner:
     and detailed audit trail generation.
     """
     
-    def __init__(self, source_dir=".", output_dir="data_cleaned", config_file="simple_config.json"):
-        self.source_dir = Path(source_dir)
-        self.output_dir = Path(output_dir)
+    def __init__(self, source_dir="raw_datasets", output_dir="data_cleaned", config_file="simple_config.json"):
+        self.source_dir = Path(source_dir).resolve()
+        self.output_dir = Path(output_dir).resolve()
         self.output_dir.mkdir(exist_ok=True)
         self.audit_log = []
         self.data_quality_metrics = {}
@@ -46,10 +46,7 @@ class GovernmentDataCleaner:
         # Load configuration parameters for dynamic processing
         self.config = self.load_config(config_file)
         
-        print("Government Data Cleaner initialized successfully")
-        print(f"Source directory: {self.source_dir}")
-        print(f"Output directory: {self.output_dir}")
-        print(f"Configuration file: {config_file}")
+        print(f"Data Cleaner: {self.source_dir} -> {self.output_dir}")
     
     def load_config(self, config_file):
         """Load simple configuration file"""
@@ -184,8 +181,8 @@ class GovernmentDataCleaner:
             
             # Check against expected ranges (simple thresholds)
             expected_ranges = {
-                'Age Group Regional Council.csv': (10, 20),
-                'Sex Age Group.csv': (50, 70),
+                'HLF Labour force status by age group region council quarterly.csv': (10, 20),
+                'HLF Labour Force Status by Sex by Age Group quarterly.csv': (50, 70),
                 'CPI All Groups.csv': (2, 2),
                 'GDP All Industries.csv': (15, 25),
                 'Ethnic Group Regional Council.csv': (15, 25)
@@ -223,24 +220,51 @@ class GovernmentDataCleaner:
             "severity": severity
         }
         self.audit_log.append(log_entry)
-        print(f"LOG {severity}: {action} - {details}")
+        # Log to audit only - reduced console verbosity
+        pass
     
     def parse_quarter_date(self, date_str):
-        """Convert YYYY-Q# to standardized datetime"""
+        """Convert YYYY-Q# to standardized datetime with robust validation"""
         try:
             if pd.isna(date_str) or str(date_str).strip() == "":
                 return pd.NaT
             
             date_str = str(date_str).strip()
+            
+            # Skip obvious metadata strings
+            metadata_indicators = ['Table information', 'Units', 'Persons Employed', 'Source', 'Note', 'Copyright', 'Data', 'Statistics']
+            if any(indicator in date_str for indicator in metadata_indicators):
+                return pd.NaT
+            
+            # Check if it contains non-numeric characters (except Q)
+            if not any(char.isdigit() for char in date_str):
+                return pd.NaT
+            
             if 'Q' in date_str:
-                year, quarter = date_str.split('Q')
-                month = (int(quarter) - 1) * 3 + 1
-                return pd.Timestamp(year=int(year), month=month, day=1)
+                parts = date_str.split('Q')
+                if len(parts) == 2:
+                    year_str, quarter_str = parts
+                    year = int(year_str)
+                    quarter = int(quarter_str)
+                    
+                    # Validate year and quarter ranges
+                    if 1900 <= year <= 2100 and 1 <= quarter <= 4:
+                        month = (quarter - 1) * 3 + 1
+                        return pd.Timestamp(year=year, month=month, day=1)
             else:
-                # Handle annual data
-                return pd.Timestamp(year=int(date_str), month=1, day=1)
+                # Handle annual data - must be 4-digit year
+                if date_str.isdigit() and len(date_str) == 4:
+                    year = int(date_str)
+                    if 1900 <= year <= 2100:
+                        return pd.Timestamp(year=year, month=1, day=1)
+            
+            # If we get here, it's not a valid date format
+            return pd.NaT
+            
         except Exception as e:
-            self.log_action("DATE_PARSE_ERROR", f"Failed to parse {date_str}: {e}", "WARNING")
+            # Only log actual parsing attempts, not metadata
+            if not any(indicator in str(date_str) for indicator in ['Table', 'Units', 'Source', 'Note']):
+                self.log_action("DATE_PARSE_ERROR", f"Failed to parse {date_str}: {e}", "WARNING")
             return pd.NaT
     
     def clean_unemployment_regional(self, filename):
@@ -592,6 +616,573 @@ class GovernmentDataCleaner:
         
         return result_df
     
+    def clean_mei_data(self, filename):
+        """Clean Monthly Employment Indicators (MEI) - Handle complex multi-row headers and monthly data"""
+        self.log_action("PROCESSING_START", f"Processing MEI data: {filename}")
+        
+        df = pd.read_csv(self.source_dir / filename)
+        original_rows = len(df)
+        
+        # Parse complex MEI headers (multi-row structure)
+        # Row 1: Main category (Age and Region, Industry, etc.)
+        # Row 2: Data type (Filled jobs)
+        # Row 3: Demographic breakdowns 
+        # Row 4: Regional/industry columns
+        # Row 5: Data types (Actual, etc.)
+        
+        # Extract dates starting from row 6 (index 5)
+        try:
+            date_column = df.iloc[5:, 0]
+            # MEI uses monthly format: "2019M05"
+            dates = date_column.apply(self.parse_mei_monthly_date)
+            
+            mei_data = {'date': dates}
+            
+            # Different processing based on MEI file type
+            if 'Age and Region' in filename:
+                mei_data = self.process_mei_age_region(df, dates, filename)
+            elif 'Industry by variable' in filename:
+                mei_data = self.process_mei_industry(df, dates, filename)
+            elif 'Sex and Age' in filename:
+                mei_data = self.process_mei_sex_age(df, dates, filename)
+            elif 'Sex and Region' in filename:
+                mei_data = self.process_mei_sex_region(df, dates, filename)
+            elif 'high level industry' in filename:
+                mei_data = self.process_mei_high_level_industry(df, dates, filename)
+            else:
+                self.log_action("UNKNOWN_MEI_TYPE", f"Unknown MEI file type: {filename}", "WARNING")
+                return pd.DataFrame({'date': dates})  # Return minimal data
+            
+        except Exception as e:
+            self.log_action("MEI_PROCESSING_ERROR", f"Error processing MEI data: {e}", "ERROR")
+            return pd.DataFrame()
+        
+        # Create cleaned dataset
+        cleaned_df = pd.DataFrame(mei_data)
+        cleaned_df = cleaned_df.dropna(subset=['date'])
+        cleaned_rows = len(cleaned_df)
+        
+        self.log_action("MEI_DATA_CLEANED", 
+                       f"MEI data cleaned: {cleaned_rows} monthly records from {original_rows} raw rows")
+        
+        # Save cleaned data
+        output_file = self.output_dir / f"cleaned_{filename}"
+        cleaned_df.to_csv(output_file, index=False)
+        self.log_action("MEI_DATA_SAVED", f"Saved MEI data: {len(cleaned_df)} records")
+        
+        return cleaned_df
+    
+    def parse_mei_monthly_date(self, date_str):
+        """Parse MEI monthly format: 2019M05 -> 2019-05-01"""
+        try:
+            if pd.isna(date_str) or str(date_str).strip() == "":
+                return pd.NaT
+            
+            date_str = str(date_str).strip()
+            if 'M' in date_str:
+                year, month = date_str.split('M')
+                return pd.Timestamp(year=int(year), month=int(month), day=1)
+            else:
+                return pd.NaT
+        except Exception as e:
+            self.log_action("MEI_DATE_PARSE_ERROR", f"Failed to parse MEI date {date_str}: {e}", "WARNING")
+            return pd.NaT
+    
+    def parse_annual_date(self, date_str):
+        """Parse annual format: 2015 -> 2015-01-01"""
+        try:
+            if pd.isna(date_str) or str(date_str).strip() == "":
+                return pd.NaT
+            
+            date_str = str(date_str).strip()
+            year = int(float(date_str))  # Handle potential float format
+            return pd.Timestamp(year=year, month=1, day=1)
+        except Exception as e:
+            self.log_action("ANNUAL_DATE_PARSE_ERROR", f"Failed to parse annual date {date_str}: {e}", "WARNING")
+            return pd.NaT
+    
+    def clean_ect_data(self, filename):
+        """Clean Electronic Card Transactions (ECT) - Monthly consumer spending data"""
+        self.log_action("PROCESSING_START", f"Processing ECT data: {filename}")
+        
+        df = pd.read_csv(self.source_dir / filename)
+        original_rows = len(df)
+        
+        # ECT has complex 3-row headers
+        # Row 0: Title
+        # Row 1: Data types (Actual, Seasonally adjusted, Trend)
+        # Row 2: Industry categories (Consumables, Durables, etc.)
+        
+        # Extract dates starting from row 3
+        try:
+            date_column = df.iloc[3:, 0]
+            dates = date_column.apply(self.parse_mei_monthly_date)  # Uses same format as MEI
+            
+            ect_data = {'date': dates}
+            
+            # Extract industry categories from row 2
+            industries = df.iloc[2, 1:].tolist()
+            data_types = df.iloc[1, 1:].tolist()
+            
+            # Process each column
+            for i, (industry, data_type) in enumerate(zip(industries, data_types), start=1):
+                if i < len(df.columns):
+                    try:
+                        values = pd.to_numeric(df.iloc[3:, i], errors='coerce')
+                        values = values.replace('..', np.nan)
+                        
+                        # Clean column names
+                        industry_clean = str(industry).replace(' ', '_').replace('/', '_').replace('.', '')
+                        data_type_clean = str(data_type).replace(' ', '_').replace('/', '_')
+                        
+                        column_name = f"ECT_{data_type_clean}_{industry_clean}"
+                        ect_data[column_name] = values
+                        
+                        # Quality metrics
+                        total_values = len(values)
+                        missing_values = values.isna().sum()
+                        completion_rate = (total_values - missing_values) / total_values * 100
+                        
+                        self.data_quality_metrics[column_name] = {
+                            'total_records': total_values,
+                            'missing_records': int(missing_values),
+                            'completion_rate': round(completion_rate, 2)
+                        }
+                        
+                    except Exception as e:
+                        self.log_action("ECT_COLUMN_ERROR", f"Error processing column {i}: {e}", "WARNING")
+            
+        except Exception as e:
+            self.log_action("ECT_PROCESSING_ERROR", f"Error processing ECT data: {e}", "ERROR")
+            return pd.DataFrame()
+        
+        # Create cleaned dataset
+        cleaned_df = pd.DataFrame(ect_data)
+        cleaned_df = cleaned_df.dropna(subset=['date'])
+        cleaned_rows = len(cleaned_df)
+        
+        self.log_action("ECT_DATA_CLEANED", 
+                       f"ECT data cleaned: {cleaned_rows} monthly records from {original_rows} raw rows")
+        
+        # Save cleaned data
+        output_file = self.output_dir / f"cleaned_{filename}"
+        cleaned_df.to_csv(output_file, index=False)
+        self.log_action("ECT_DATA_SAVED", f"Saved ECT data: {len(cleaned_df)} records")
+        
+        return cleaned_df
+    
+    def clean_buo_data(self, filename):
+        """Clean Business Operations (BUO) - Annual business survey data"""
+        self.log_action("PROCESSING_START", f"Processing BUO data: {filename}")
+        
+        # BUO files have headers in row 2 (index 1), not row 1 (index 0)
+        # Row 0: Title/description 
+        # Row 1: Actual meaningful column headers
+        # Row 2+: Data
+        df = pd.read_csv(self.source_dir / filename, header=1)
+        original_rows = len(df)
+        
+        # BUO has massive 2-row headers with business metrics
+        # Row 0: Title
+        # Row 1: All the business variables (178+ columns) - NOW USED AS HEADERS
+        
+        # Extract dates from first column (now properly aligned with headers)
+        try:
+            dates = df.iloc[:, 0].apply(self.parse_annual_date)
+            
+            buo_data = {'date': dates}
+            
+            # Variable names are now proper column headers
+            variables = df.columns[1:].tolist()  # Skip date column
+            
+            # Process each variable column
+            for variable in variables:
+                try:
+                    values = pd.to_numeric(df[variable], errors='coerce')
+                    values = values.replace('..', np.nan)
+                    
+                    # Clean variable names for column naming
+                    variable_clean = str(variable).replace(' ', '_').replace('/', '_').replace('%', 'pct').replace('-', '_')
+                    variable_clean = variable_clean.replace('(', '').replace(')', '').replace(',', '')[:50]  # Limit length
+                    
+                    # Use the clean variable name directly (no BUO_ prefix to keep meaningful names)
+                    buo_data[variable_clean] = values
+                    
+                    # Quality metrics
+                    total_values = len(values)
+                    missing_values = values.isna().sum()
+                    completion_rate = (total_values - missing_values) / total_values * 100
+                    
+                    self.data_quality_metrics[variable_clean] = {
+                        'total_records': total_values,
+                        'missing_records': int(missing_values),
+                        'completion_rate': round(completion_rate, 2)
+                    }
+                    
+                except Exception as e:
+                    self.log_action("BUO_COLUMN_ERROR", f"Error processing column {variable}: {e}", "WARNING")
+            
+        except Exception as e:
+            self.log_action("BUO_PROCESSING_ERROR", f"Error processing BUO data: {e}", "ERROR")
+            return pd.DataFrame()
+        
+        # Create cleaned dataset
+        cleaned_df = pd.DataFrame(buo_data)
+        cleaned_df = cleaned_df.dropna(subset=['date'])
+        cleaned_rows = len(cleaned_df)
+        
+        self.log_action("BUO_DATA_CLEANED", 
+                       f"BUO data cleaned: {cleaned_rows} annual records from {original_rows} raw rows")
+        
+        # Save cleaned data
+        output_file = self.output_dir / f"cleaned_{filename}"
+        cleaned_df.to_csv(output_file, index=False)
+        self.log_action("BUO_DATA_SAVED", f"Saved BUO data: {len(cleaned_df)} records")
+        
+        return cleaned_df
+    
+    def clean_hlf_data(self, filename):
+        """Clean Household Labour Force Survey (HLF) - Quarterly labor statistics"""
+        self.log_action("PROCESSING_START", f"Processing HLF data: {filename}")
+        
+        df = pd.read_csv(self.source_dir / filename)
+        original_rows = len(df)
+        
+        # HLF has complex 4-row headers
+        # Row 0: Title
+        # Row 1: Gender (Male/Female) groups
+        # Row 2: Age groups or regions
+        # Row 3: Statistics (Employed, Unemployed, etc.)
+        
+        # Extract dates starting from row 4
+        try:
+            date_column = df.iloc[4:, 0]
+            dates = date_column.apply(self.parse_quarter_date)
+            
+            hlf_data = {'date': dates}
+            
+            # Extract headers for column naming
+            row1_headers = df.iloc[1, 1:].tolist()  # Gender
+            row2_headers = df.iloc[2, 1:].tolist()  # Age/Region
+            row3_headers = df.iloc[3, 1:].tolist()  # Statistics
+            
+            # Process each column
+            for i, (gender, age_region, statistic) in enumerate(zip(row1_headers, row2_headers, row3_headers), start=1):
+                if i < len(df.columns):
+                    try:
+                        values = pd.to_numeric(df.iloc[4:, i], errors='coerce')
+                        values = values.replace('..', np.nan)
+                        
+                        # Clean headers for column naming
+                        gender_clean = str(gender).replace(' ', '_') if not pd.isna(gender) else 'Total'
+                        age_region_clean = str(age_region).replace(' ', '_').replace('-', '_') if not pd.isna(age_region) else ''
+                        statistic_clean = str(statistic).replace(' ', '_').replace('/', '_')
+                        
+                        column_name = f"HLF_{gender_clean}_{age_region_clean}_{statistic_clean}"
+                        column_name = column_name.replace('__', '_')  # Remove double underscores
+                        hlf_data[column_name] = values
+                        
+                        # Quality metrics
+                        total_values = len(values)
+                        missing_values = values.isna().sum()
+                        completion_rate = (total_values - missing_values) / total_values * 100
+                        
+                        self.data_quality_metrics[column_name] = {
+                            'total_records': total_values,
+                            'missing_records': int(missing_values),
+                            'completion_rate': round(completion_rate, 2)
+                        }
+                        
+                    except Exception as e:
+                        self.log_action("HLF_COLUMN_ERROR", f"Error processing column {i}: {e}", "WARNING")
+            
+        except Exception as e:
+            self.log_action("HLF_PROCESSING_ERROR", f"Error processing HLF data: {e}", "ERROR")
+            return pd.DataFrame()
+        
+        # Create cleaned dataset
+        cleaned_df = pd.DataFrame(hlf_data)
+        cleaned_df = cleaned_df.dropna(subset=['date'])
+        cleaned_rows = len(cleaned_df)
+        
+        self.log_action("HLF_DATA_CLEANED", 
+                       f"HLF data cleaned: {cleaned_rows} quarterly records from {original_rows} raw rows")
+        
+        # Save cleaned data
+        output_file = self.output_dir / f"cleaned_{filename}"
+        cleaned_df.to_csv(output_file, index=False)
+        self.log_action("HLF_DATA_SAVED", f"Saved HLF data: {len(cleaned_df)} records")
+        
+        return cleaned_df
+    
+    def clean_qem_data(self, filename):
+        """Clean Quarterly Employment Survey (QEM) - Industry employment data"""
+        self.log_action("PROCESSING_START", f"Processing QEM data: {filename}")
+        
+        df = pd.read_csv(self.source_dir / filename)
+        original_rows = len(df)
+        
+        # QEM has complex 4-row headers
+        # Row 0: Title
+        # Row 1: Industry categories
+        # Row 2: Gender (Male/Female/Total)
+        # Row 3: Employment status (Part-time/Full-time)
+        
+        # Extract dates starting from row 4
+        try:
+            date_column = df.iloc[4:, 0]
+            dates = date_column.apply(self.parse_quarter_date)
+            
+            qem_data = {'date': dates}
+            
+            # Extract headers for column naming
+            row1_headers = df.iloc[1, 1:].tolist()  # Industry
+            row2_headers = df.iloc[2, 1:].tolist()  # Gender
+            row3_headers = df.iloc[3, 1:].tolist()  # Employment status
+            
+            # Process each column
+            for i, (industry, gender, status) in enumerate(zip(row1_headers, row2_headers, row3_headers), start=1):
+                if i < len(df.columns):
+                    try:
+                        values = pd.to_numeric(df.iloc[4:, i], errors='coerce')
+                        values = values.replace('..', np.nan)
+                        
+                        # Clean headers for column naming
+                        industry_clean = str(industry).replace(' ', '_').replace(',', '').replace('(', '').replace(')', '')
+                        gender_clean = str(gender).replace(' ', '_')
+                        status_clean = str(status).replace(' ', '_').replace('-', '_')
+                        
+                        column_name = f"QEM_{industry_clean}_{gender_clean}_{status_clean}"
+                        column_name = column_name.replace('__', '_')[:60]  # Limit length
+                        qem_data[column_name] = values
+                        
+                        # Quality metrics
+                        total_values = len(values)
+                        missing_values = values.isna().sum()
+                        completion_rate = (total_values - missing_values) / total_values * 100
+                        
+                        self.data_quality_metrics[column_name] = {
+                            'total_records': total_values,
+                            'missing_records': int(missing_values),
+                            'completion_rate': round(completion_rate, 2)
+                        }
+                        
+                    except Exception as e:
+                        self.log_action("QEM_COLUMN_ERROR", f"Error processing column {i}: {e}", "WARNING")
+            
+        except Exception as e:
+            self.log_action("QEM_PROCESSING_ERROR", f"Error processing QEM data: {e}", "ERROR")
+            return pd.DataFrame()
+        
+        # Create cleaned dataset
+        cleaned_df = pd.DataFrame(qem_data)
+        cleaned_df = cleaned_df.dropna(subset=['date'])
+        cleaned_rows = len(cleaned_df)
+        
+        self.log_action("QEM_DATA_CLEANED", 
+                       f"QEM data cleaned: {cleaned_rows} quarterly records from {original_rows} raw rows")
+        
+        # Save cleaned data
+        output_file = self.output_dir / f"cleaned_{filename}"
+        cleaned_df.to_csv(output_file, index=False)
+        self.log_action("QEM_DATA_SAVED", f"Saved QEM data: {len(cleaned_df)} records")
+        
+        return cleaned_df
+    
+    def process_mei_age_region(self, df, dates, filename):
+        """Process MEI Age and Region data - filled jobs by age groups and regions"""
+        mei_data = {'date': dates}
+        
+        # Extract age groups from row 3 and regions from row 4
+        age_groups = ['15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65+']
+        regions = ['Northland', 'Auckland', 'Waikato', 'Bay of Plenty', 'Gisborne', 
+                  'Hawkes Bay', 'Taranaki', 'Manawatu-Whanganui', 'Wellington', 'Tasman',
+                  'Nelson', 'Marlborough', 'West Coast', 'Canterbury', 'Otago', 'Southland']
+        
+        col_index = 1
+        for age_group in age_groups:
+            for region in regions:
+                if col_index < len(df.columns):
+                    try:
+                        values = pd.to_numeric(df.iloc[5:, col_index], errors='coerce')
+                        values = values.replace('..', np.nan)
+                        
+                        column_name = f"{region}_{age_group}_filled_jobs"
+                        mei_data[column_name] = values
+                        
+                        # Quality metrics
+                        total_values = len(values)
+                        missing_values = values.isna().sum()
+                        completion_rate = (total_values - missing_values) / total_values * 100
+                        
+                        self.data_quality_metrics[column_name] = {
+                            'total_records': total_values,
+                            'missing_records': int(missing_values),
+                            'completion_rate': round(completion_rate, 2)
+                        }
+                        
+                        self.log_action("MEI_COLUMN_PROCESSED", 
+                                       f"{column_name}: {completion_rate:.1f}% complete")
+                    except Exception as e:
+                        self.log_action("MEI_COLUMN_ERROR", f"Error processing column {col_index}: {e}", "WARNING")
+                
+                col_index += 1
+        
+        return mei_data
+    
+    def process_mei_industry(self, df, dates, filename):
+        """Process MEI Industry data - filled jobs by industry sectors"""
+        mei_data = {'date': dates}
+        
+        # Industry names from row 3
+        industries = ['Agriculture_Forestry_Fishing', 'Mining', 'Manufacturing', 
+                     'Electricity_Gas_Water_Waste', 'Construction', 'Wholesale_Trade',
+                     'Retail_Trade', 'Accommodation_Food_Services', 'Transport_Postal_Warehousing',
+                     'Information_Media_Telecommunications', 'Financial_Insurance_Services',
+                     'Rental_Hiring_Real_Estate', 'Professional_Scientific_Technical',
+                     'Administrative_Support_Services', 'Public_Administration_Safety',
+                     'Education_Training', 'Health_Care_Social_Assistance', 
+                     'Arts_Recreation_Services', 'Other_Services']
+        
+        for i, industry in enumerate(industries, start=1):
+            if i < len(df.columns):
+                try:
+                    values = pd.to_numeric(df.iloc[4:, i], errors='coerce')
+                    column_name = f"{industry}_filled_jobs"
+                    mei_data[column_name] = values
+                    
+                    # Quality metrics
+                    total_values = len(values)
+                    missing_values = values.isna().sum()
+                    completion_rate = (total_values - missing_values) / total_values * 100
+                    
+                    self.data_quality_metrics[column_name] = {
+                        'total_records': total_values,
+                        'missing_records': int(missing_values),
+                        'completion_rate': round(completion_rate, 2)
+                    }
+                    
+                except Exception as e:
+                    self.log_action("MEI_INDUSTRY_ERROR", f"Error processing industry {industry}: {e}", "WARNING")
+        
+        return mei_data
+    
+    def process_mei_sex_age(self, df, dates, filename):
+        """Process MEI Sex and Age data - filled jobs by male/female and age groups"""
+        mei_data = {'date': dates}
+        
+        age_groups = ['15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65+']
+        sexes = ['Male', 'Female']
+        
+        col_index = 1
+        for sex in sexes:
+            for age_group in age_groups:
+                if col_index < len(df.columns):
+                    try:
+                        values = pd.to_numeric(df.iloc[5:, col_index], errors='coerce')
+                        values = values.replace('..', np.nan)
+                        
+                        column_name = f"{sex}_{age_group}_filled_jobs"
+                        mei_data[column_name] = values
+                        
+                        # Quality metrics
+                        total_values = len(values)
+                        missing_values = values.isna().sum()
+                        completion_rate = (total_values - missing_values) / total_values * 100
+                        
+                        self.data_quality_metrics[column_name] = {
+                            'total_records': total_values,
+                            'missing_records': int(missing_values),
+                            'completion_rate': round(completion_rate, 2)
+                        }
+                        
+                    except Exception as e:
+                        self.log_action("MEI_SEX_AGE_ERROR", f"Error processing {sex} {age_group}: {e}", "WARNING")
+                
+                col_index += 1
+        
+        return mei_data
+    
+    def process_mei_sex_region(self, df, dates, filename):
+        """Process MEI Sex and Region data - filled jobs by male/female across regions"""
+        mei_data = {'date': dates}
+        
+        regions = ['Northland', 'Auckland', 'Waikato', 'Bay of Plenty', 'Gisborne', 
+                  'Hawkes Bay', 'Taranaki', 'Manawatu-Whanganui', 'Wellington', 'Tasman',
+                  'Nelson', 'Marlborough', 'West Coast', 'Canterbury', 'Otago', 'Southland']
+        sexes = ['Male', 'Female']
+        
+        col_index = 1
+        for sex in sexes:
+            for region in regions:
+                if col_index < len(df.columns):
+                    try:
+                        values = pd.to_numeric(df.iloc[5:, col_index], errors='coerce')
+                        values = values.replace('..', np.nan)
+                        
+                        column_name = f"{sex}_{region}_filled_jobs"
+                        mei_data[column_name] = values
+                        
+                        # Quality metrics
+                        total_values = len(values)
+                        missing_values = values.isna().sum()
+                        completion_rate = (total_values - missing_values) / total_values * 100
+                        
+                        self.data_quality_metrics[column_name] = {
+                            'total_records': total_values,
+                            'missing_records': int(missing_values),
+                            'completion_rate': round(completion_rate, 2)
+                        }
+                        
+                    except Exception as e:
+                        self.log_action("MEI_SEX_REGION_ERROR", f"Error processing {sex} {region}: {e}", "WARNING")
+                
+                col_index += 1
+        
+        return mei_data
+    
+    def process_mei_high_level_industry(self, df, dates, filename):
+        """Process MEI High Level Industry data - filled jobs and earnings by industry groups"""
+        mei_data = {'date': dates}
+        
+        # High level industries: Primary, Goods-producing, Service, All industries
+        # Each has: Actual, Seasonally adjusted, Trend
+        # Each measurement type has: Filled jobs, Earnings-cash, Earnings-accrued
+        
+        industry_groups = ['Primary_industries', 'Goods_producing_industries', 'Service_industries', 'All_industries']
+        measurement_types = ['Actual', 'Seasonally_adjusted', 'Trend']
+        data_types = ['filled_jobs', 'earnings_cash', 'earnings_accrued']
+        
+        col_index = 1
+        for industry in industry_groups:
+            for measurement in measurement_types:
+                for data_type in data_types:
+                    if col_index < len(df.columns):
+                        try:
+                            values = pd.to_numeric(df.iloc[4:, col_index], errors='coerce')
+                            values = values.replace('..', np.nan)
+                            
+                            column_name = f"{industry}_{measurement}_{data_type}"
+                            mei_data[column_name] = values
+                            
+                            # Quality metrics
+                            total_values = len(values)
+                            missing_values = values.isna().sum()
+                            completion_rate = (total_values - missing_values) / total_values * 100
+                            
+                            self.data_quality_metrics[column_name] = {
+                                'total_records': total_values,
+                                'missing_records': int(missing_values),
+                                'completion_rate': round(completion_rate, 2)
+                            }
+                            
+                        except Exception as e:
+                            self.log_action("MEI_HIGH_LEVEL_ERROR", f"Error processing {industry} {measurement} {data_type}: {e}", "WARNING")
+                    
+                    col_index += 1
+        
+        return mei_data
+    
     def clean_ethnic_data(self, filename):
         """Clean ethnic group regional data - Handle massive sparsity"""
         self.log_action("PROCESSING_START", f"Processing ethnic data: {filename}")
@@ -777,21 +1368,55 @@ class GovernmentDataCleaner:
     
     def process_all_files(self):
         """Main processing pipeline for all 10 CSV files"""
-        print("\n" + "="*60)
-        print("SPRINT 2: GOVERNMENT-STANDARD DATA CLEANING")
-        print("="*60)
+        print("\nGovernment Data Cleaning Pipeline")
         
-        # Define all files to process
+        # Define all files to process - EACH FILE PROCESSED BY ONE METHOD ONLY
         files_to_process = [
-            ('Age Group Regional Council.csv', self.clean_unemployment_regional),
-            ('Sex Age Group.csv', self.clean_unemployment_demographics),
+            # Unemployment datasets - use most specific cleaning method for each
+            ('HLF Labour force status by age group region council quarterly.csv', self.clean_hlf_data),
+            ('HLF Labour Force Status by Sex by Age Group quarterly.csv', self.clean_unemployment_demographics),
+            ('HLF Labour Force status by Sex by regional council.csv', self.clean_hlf_data),
+            
+            # Ethnic and demographic data  
             ('Ethnic Group Regional Council.csv', self.clean_ethnic_data),
-            ('Sex Regional Council.csv', self.clean_unemployment_regional),
+            
+            # Economic indicators
             ('CPI All Groups.csv', self.clean_cpi_data),
             ('CPI Regional All Groups.csv', self.clean_cpi_regional_data),
             ('GDP All Industries.csv', self.clean_gdp_data),
             ('LCI All Sectors and Occupation Group.csv', self.clean_lci_data),
-            ('LCI All sectors and Industry Group.csv', self.clean_lci_data)
+            ('LCI All sectors and Industry Group.csv', self.clean_lci_data),
+            
+            # Monthly Employment Indicators (MEI) - High-value predictors
+            ('MEI Age and Region by variable monthly.csv', self.clean_mei_data),
+            ('MEI Industry by variable monthly.csv', self.clean_mei_data),
+            ('MEI Sex and Age by Variable monthly.csv', self.clean_mei_data),
+            ('MEI Sex and Region by Variable Monthly.csv', self.clean_mei_data),
+            ('MEI high level industry by variable monthly.csv', self.clean_mei_data),
+            
+            # NEW: Electronic Card Transactions (ECT) - Monthly consumer spending
+            ('ECT electronic card transactions by industry group monthly.csv', self.clean_ect_data),
+            ('ECT Number of electronic card transactions A_S_T by division monthly.csv', self.clean_ect_data),
+            ('ECT Total Values electronic card transactions A_S_T by division monthly.csv', self.clean_ect_data),
+            ('ECT Totals electronic card transaction by division percentage changes monthly.csv', self.clean_ect_data),
+            ('ECT means and proportion monthly.csv', self.clean_ect_data),
+            
+            # NEW: Business Operations Survey (BUO) - Annual business confidence
+            ('BUO Totals - Business Operations Annual.csv', self.clean_buo_data),
+            ('BUO ICT Annual.csv', self.clean_buo_data),
+            ('BUO Totals innovation annual.csv', self.clean_buo_data),
+            
+            # Additional HLF files not already processed above
+            ('HLF Labour Force status by sex by total resp ethnic group quarterly.csv', self.clean_hlf_data),
+            ('HLF Labour force status by ethnic group by regional council quarterly.csv', self.clean_hlf_data),
+            ('HLF labour force status by sex sing or comb ethnic group.csv', self.clean_hlf_data),
+            
+            # NEW: Quarterly Employment Survey (QEM) - Industry employment
+            ('QEM Filled Jobs by Industry by sex and status in employment quarterly.csv', self.clean_qem_data),
+            ('QEM filled jobs by sector by sex and status in employment quarterly.csv', self.clean_qem_data),
+            ('QEM Average Hourly Earnings by Sector and Sex quarterly.csv', self.clean_qem_data),
+            ('QEM average hourly earnings by industry and sex quarterly.csv', self.clean_qem_data),
+            ('QEM average hourly earnings by sector and sex percentage change quarterly.csv', self.clean_qem_data)
         ]
         
         # Check for unexpected files in source directory

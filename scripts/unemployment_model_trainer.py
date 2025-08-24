@@ -69,19 +69,19 @@ class UnemploymentModelTrainer:
     """
     
     def __init__(self, data_dir="model_ready_data", models_dir="models", config_file="simple_config.json"):
-        self.data_dir = Path(data_dir)
-        self.models_dir = Path(models_dir)
+        self.data_dir = Path(data_dir).resolve()
+        self.models_dir = Path(models_dir).resolve()
         self.models_dir.mkdir(exist_ok=True)
+        self.config_file = config_file
+        
+        # Load configuration
+        self.config = self.load_config(config_file)
         
         # Load target regions from config
-        try:
-            with open(config_file, 'r') as f:
-                config = json.load(f)
-            self.target_regions = config.get('regions', {}).get('unemployment_core', ['Auckland', 'Wellington', 'Canterbury'])
-        except:
-            self.target_regions = ['Auckland', 'Wellington', 'Canterbury']
+        self.target_regions = self.config.get('regions', {}).get('unemployment_core', ['Auckland', 'Wellington', 'Canterbury'])
         
-        self.target_columns = [f"{region}_Male_unemployment_rate" for region in self.target_regions]
+        # Target columns will be detected from actual data, not hardcoded
+        self.target_columns = []
         self.trained_models = {}
         self.model_performance = {}
         self.feature_importance = {}
@@ -90,6 +90,80 @@ class UnemploymentModelTrainer:
         print(f"Target Regions: {', '.join(self.target_regions)}")
         print(f"Data Directory: {self.data_dir}")
         print(f"Models Directory: {self.models_dir}")
+
+    def load_config(self, config_file):
+        """Load configuration from JSON file"""
+        try:
+            with open(config_file, 'r') as f:
+                config = json.load(f)
+            print(f"Configuration loaded from {config_file}")
+            return config
+        except (FileNotFoundError, json.JSONDecodeError, PermissionError) as e:
+            print(f"WARNING: Failed to load config from {config_file}: {e}")
+            return {}
+        except Exception as e:
+            print(f"ERROR: Unexpected error loading config from {config_file}: {e}")
+            return {}
+
+    def detect_target_columns(self, df):
+        """Detect target columns using configuration-driven approach"""
+        import re
+        
+        # Get forecasting configuration
+        forecasting_config = self.config.get('forecasting', {})
+        target_config = forecasting_config.get('target_columns', {})
+        
+        pattern = target_config.get('pattern', '.*_unemployment_rate$')
+        exclude_patterns = target_config.get('exclude_patterns', ['lag', 'ma', 'change'])
+        priority_regions = target_config.get('priority_regions', ['Auckland', 'Wellington', 'Canterbury'])
+        priority_demographics = target_config.get('priority_demographics', ['European', 'Maori', 'Total'])
+        
+        print(f"Detecting target columns with pattern: {pattern}")
+        
+        # Compile regex pattern
+        try:
+            regex_pattern = re.compile(pattern)
+        except re.error:
+            regex_pattern = re.compile(r".*unemployment_rate$")
+        
+        # Find candidate columns
+        candidate_columns = []
+        for col in df.columns:
+            if regex_pattern.match(col):
+                exclude = False
+                for exclude_pattern in exclude_patterns:
+                    if exclude_pattern.lower() in col.lower():
+                        exclude = True
+                        break
+                if not exclude:
+                    candidate_columns.append(col)
+        
+        # Prioritize columns
+        priority_columns = []
+        for col in candidate_columns:
+            for region in priority_regions:
+                if region in col:
+                    for demo in priority_demographics:
+                        if demo in col:
+                            priority_columns.append(col)
+                            break
+                    break
+        
+        target_columns = priority_columns if priority_columns else candidate_columns[:10]
+        
+        print(f"Found {len(target_columns)} target columns: {target_columns}")
+        return target_columns
+
+    def extract_region_from_column(self, column_name):
+        """Extract region name from column name dynamically"""
+        # Handle different column naming patterns
+        if '_unemployment_rate' in column_name:
+            # Remove the unemployment_rate suffix and extract last part as region
+            base = column_name.replace('_unemployment_rate', '')
+            parts = base.split('_')
+            # Last part is typically the region
+            return parts[-1] if parts else column_name
+        return column_name
 
     def load_datasets(self):
         """Load train, validation, and test datasets"""
@@ -109,10 +183,20 @@ class UnemploymentModelTrainer:
             print(f"Test Data: {len(self.test_data)} records")
             print(f"Total Features: {self.feature_summary.get('total_features', 'Unknown')}")
             
+            # Detect target columns from the actual data
+            self.target_columns = self.detect_target_columns(self.train_data)
+            
+            if not self.target_columns:
+                print("ERROR: No target columns found!")
+                return False
+            
             return True
             
+        except (FileNotFoundError, pd.errors.EmptyDataError, pd.errors.ParserError) as e:
+            print(f"ERROR loading datasets - file/parsing issue: {e}")
+            return False
         except Exception as e:
-            print(f"ERROR loading datasets: {e}")
+            print(f"ERROR loading datasets - unexpected issue: {e}")
             return False
 
     def prepare_features(self, dataset, target_col):
@@ -121,8 +205,19 @@ class UnemploymentModelTrainer:
         exclude_cols = self.target_columns + ['date', 'quarter', 'year']
         feature_cols = [col for col in dataset.columns if col not in exclude_cols]
         
-        X = dataset[feature_cols].ffill().fillna(0)
-        y = dataset[target_col].ffill()
+        # Smart feature imputation - limit forward-filling to prevent artificial repetition
+        X = dataset[feature_cols].copy()
+        buo_keywords = ['Computer_usage', 'ICT_', 'Loss_', 'Reason_', 'security', 'Outcomes']
+        
+        for col in feature_cols:
+            if any(keyword in col for keyword in buo_keywords):
+                # BUO columns: limited forward fill (max 1 period) then fill with 0
+                X[col] = X[col].ffill(limit=1).fillna(0)
+            else:
+                # Other columns: standard imputation
+                X[col] = X[col].ffill().fillna(0)
+        # FIXED: Handle NaN in target variable properly
+        y = dataset[target_col].ffill().bfill().fillna(dataset[target_col].mean())
         
         return X, y, feature_cols
 
@@ -134,7 +229,7 @@ class UnemploymentModelTrainer:
         arima_performance = {}
         
         for target_col in self.target_columns:
-            region = target_col.replace('_Male_unemployment_rate', '')
+            region = self.extract_region_from_column(target_col)
             print(f"\nTraining ARIMA for {region}...")
             
             try:
@@ -190,8 +285,12 @@ class UnemploymentModelTrainer:
                 
                 print(f"TRAINED {region} ARIMA({best_order[0]},{best_order[1]},{best_order[2]}) - MAE: {mae:.3f}")
                 
+            except (ValueError, np.linalg.LinAlgError) as e:
+                print(f"ERROR ARIMA training failed for {region} - numerical issue: {e}")
+            except ImportError as e:
+                print(f"ERROR ARIMA training failed for {region} - missing dependency: {e}")
             except Exception as e:
-                print(f"ERROR ARIMA training failed for {region}: {e}")
+                print(f"ERROR ARIMA training failed for {region} - unexpected issue: {e}")
         
         self.trained_models['arima'] = arima_models
         self.model_performance['arima'] = arima_performance
@@ -246,7 +345,7 @@ class UnemploymentModelTrainer:
         lstm_scalers = {}
         
         for target_col in self.target_columns:
-            region = target_col.replace('_Male_unemployment_rate', '')
+            region = self.extract_region_from_column(target_col)
             print(f"\nTraining LSTM for {region}...")
             
             try:
@@ -309,8 +408,12 @@ class UnemploymentModelTrainer:
                 
                 print(f"TRAINED {region} LSTM - MAE: {val_mae:.3f}")
                 
+            except ImportError as e:
+                print(f"ERROR LSTM training failed for {region} - TensorFlow not available: {e}")
+            except ValueError as e:
+                print(f"ERROR LSTM training failed for {region} - data/parameter issue: {e}")
             except Exception as e:
-                print(f"ERROR LSTM training failed for {region}: {e}")
+                print(f"ERROR LSTM training failed for {region} - unexpected issue: {e}")
         
         self.trained_models['lstm'] = lstm_models
         self.trained_models['lstm_scalers'] = lstm_scalers
@@ -327,7 +430,7 @@ class UnemploymentModelTrainer:
         gb_performance = {}
         
         for target_col in self.target_columns:
-            region = target_col.replace('_Male_unemployment_rate', '')
+            region = self.extract_region_from_column(target_col)
             print(f"\nTraining ensemble models for {region}...")
             
             try:
@@ -391,8 +494,10 @@ class UnemploymentModelTrainer:
                 
                 print(f"TRAINED {region} RF MAE: {rf_mae:.3f}, GB MAE: {gb_mae:.3f}")
                 
+            except ValueError as e:
+                print(f"ERROR Ensemble training failed for {region} - data issue: {e}")
             except Exception as e:
-                print(f"ERROR Ensemble training failed for {region}: {e}")
+                print(f"ERROR Ensemble training failed for {region} - unexpected issue: {e}")
         
         self.trained_models['random_forest'] = rf_models
         self.trained_models['gradient_boosting'] = gb_models
@@ -418,7 +523,7 @@ class UnemploymentModelTrainer:
         polynomial_performance = {}
         
         for target_col in self.target_columns:
-            region = target_col.replace('_Male_unemployment_rate', '')
+            region = self.extract_region_from_column(target_col)
             print(f"\nTraining regression models for {region}...")
             
             try:
@@ -495,8 +600,10 @@ class UnemploymentModelTrainer:
                 print(f"TRAINED {region} - Linear MAE: {linear_mae:.3f}, Ridge MAE: {ridge_mae:.3f}, Lasso MAE: {lasso_mae:.3f}")
                 print(f"         ElasticNet MAE: {elasticnet_mae:.3f}, Polynomial MAE: {polynomial_mae:.3f}")
                 
+            except (ValueError, np.linalg.LinAlgError) as e:
+                print(f"ERROR Regression training failed for {region} - numerical issue: {e}")
             except Exception as e:
-                print(f"ERROR Regression training failed for {region}: {e}")
+                print(f"ERROR Regression training failed for {region} - unexpected issue: {e}")
         
         # Store all regression models
         self.trained_models['linear_regression'] = linear_models
@@ -520,7 +627,7 @@ class UnemploymentModelTrainer:
         test_performance = {}
         
         for target_col in self.target_columns:
-            region = target_col.replace('_Male_unemployment_rate', '')
+            region = self.extract_region_from_column(target_col)
             test_performance[region] = {}
             
             try:
@@ -581,8 +688,10 @@ class UnemploymentModelTrainer:
                 
                 print(f"EVALUATED {region} test evaluation complete")
                 
+            except KeyError as e:
+                print(f"ERROR Test evaluation failed for {region} - missing data/model: {e}")
             except Exception as e:
-                print(f"ERROR Test evaluation failed for {region}: {e}")
+                print(f"ERROR Test evaluation failed for {region} - unexpected issue: {e}")
         
         self.model_performance['test_results'] = test_performance
         return test_performance
@@ -631,7 +740,7 @@ class UnemploymentModelTrainer:
         
         # Find best model for each region based on validation MAE
         for target_col in self.target_columns:
-            region = target_col.replace('_Male_unemployment_rate', '')
+            region = self.extract_region_from_column(target_col)
             best_mae = np.inf
             best_model = None
             
@@ -678,17 +787,18 @@ class UnemploymentModelTrainer:
             print("ERROR Failed to load datasets. Exiting.")
             return False
         
-        # Step 2: Train ARIMA Models
+        # SIMPLIFIED MODEL SELECTION: Focus on top 3 proven performers
+        # Based on industry best practices for unemployment forecasting
+        
+        # Step 2: Train ARIMA Models (statistical time series standard)
         self.train_arima_models()
         
-        # Step 3: Train LSTM Models
-        self.train_lstm_models()
-        
-        # Step 4: Train Ensemble Models
+        # Step 3: Train Random Forest & Gradient Boosting (best ML performers)
         self.train_ensemble_models()
         
-        # Step 5: Train Regression Models
-        self.train_regression_models()
+        # REMOVED: LSTM (high complexity, marginal improvement for this use case)
+        # REMOVED: 5 regression variants (redundant, minimal performance gain)
+        print("   Simplified model selection: ARIMA + Random Forest + Gradient Boosting")
         
         # Step 6: Evaluate on Test Set
         self.evaluate_models()

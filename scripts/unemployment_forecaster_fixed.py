@@ -57,15 +57,79 @@ class FixedUnemploymentForecaster:
     Target Regions: Auckland, Wellington, Canterbury
     """
     
-    def __init__(self, models_dir="models", data_dir="model_ready_data"):
-        self.models_dir = Path(models_dir)
-        self.data_dir = Path(data_dir)
+    def __init__(self, models_dir="models", data_dir="model_ready_data", config_file="simple_config.json"):
+        self.models_dir = Path(models_dir).resolve()
+        self.data_dir = Path(data_dir).resolve()
+        
+        # Ensure directories exist
+        if not self.models_dir.exists():
+            raise FileNotFoundError(f"Models directory not found: {self.models_dir}")
+        if not self.data_dir.exists():
+            raise FileNotFoundError(f"Data directory not found: {self.data_dir}")
         self.models = {}
         self.scalers = {}
         self.feature_columns = {}
         self.target_regions = ['Auckland', 'Wellington', 'Canterbury']
+        self.config_file = config_file
+        
+        # Load configuration
+        self.config = self.load_config(config_file)
         
         print("Advanced Forecasting Engine Initialized")
+
+    def load_config(self, config_file):
+        """Load configuration from JSON file"""
+        try:
+            with open(config_file, 'r') as f:
+                config = json.load(f)
+            return config
+        except Exception as e:
+            print(f"WARNING: Failed to load config from {config_file}: {e}")
+            return {}
+
+    def detect_target_columns(self):
+        """Detect target columns from test data using configuration"""
+        import re
+        
+        forecasting_config = self.config.get('forecasting', {})
+        target_config = forecasting_config.get('target_columns', {})
+        
+        pattern = target_config.get('pattern', '.*_unemployment_rate$')
+        exclude_patterns = target_config.get('exclude_patterns', ['lag', 'ma', 'change'])
+        
+        try:
+            regex_pattern = re.compile(pattern)
+        except re.error:
+            regex_pattern = re.compile(r".*unemployment_rate$")
+        
+        # Find candidate columns
+        candidate_columns = []
+        for col in self.test_data.columns:
+            if regex_pattern.match(col):
+                exclude = False
+                for exclude_pattern in exclude_patterns:
+                    if exclude_pattern.lower() in col.lower():
+                        exclude = True
+                        break
+                if not exclude:
+                    candidate_columns.append(col)
+        
+        return candidate_columns
+
+    def extract_region_from_column(self, column_name):
+        """Extract region name from column name"""
+        if '_unemployment_rate' in column_name:
+            base = column_name.replace('_unemployment_rate', '')
+            parts = base.split('_')
+            return parts[-1] if parts else column_name
+        return column_name
+
+    def find_target_column_for_region(self, region):
+        """Find the target column that corresponds to a region"""
+        for col in self.target_columns:
+            if region in col:
+                return col
+        return None
         
     def load_models_and_data(self):
         """Load all models and prepare data for forecasting"""
@@ -75,10 +139,30 @@ class FixedUnemploymentForecaster:
         try:
             self.test_data = pd.read_csv(self.data_dir / "test_data.csv")
             print(f"Loaded test data: {len(self.test_data)} records")
+            
+            # Detect target columns from actual data
+            self.target_columns = self.detect_target_columns()
+            if not self.target_columns:
+                print("ERROR: No target columns found in test data")
+                return False
+            
+            print(f"Detected target columns: {self.target_columns}")
+            
         except Exception as e:
             print(f"Error loading test data: {e}")
             return False
         
+        # Try to load saved feature columns first
+        feature_file = self.models_dir / "training_features.json"
+        saved_features = {}
+        if feature_file.exists():
+            try:
+                with open(feature_file, 'r') as f:
+                    saved_features = json.load(f)
+                print("Loaded saved training features")
+            except Exception as e:
+                print(f"Could not load saved features: {e}")
+
         # Load models for each region
         models_loaded = 0
         for region in self.target_regions:
@@ -91,9 +175,16 @@ class FixedUnemploymentForecaster:
             if rf_file.exists():
                 try:
                     with open(rf_file, 'rb') as f:
-                        self.models[region]['random_forest'] = pickle.load(f)
+                        model = pickle.load(f)
+                        self.models[region]['random_forest'] = model
                         models_loaded += 1
                         print(f"Loaded Random Forest for {region}")
+                        
+                        # Extract feature names if not already saved
+                        if hasattr(model, 'feature_names_in_') and region not in saved_features:
+                            saved_features[region] = list(model.feature_names_in_)
+                            print(f"Extracted feature names from Random Forest for {region}")
+                        
                 except Exception as e:
                     print(f"Could not load Random Forest for {region}: {e}")
             
@@ -102,9 +193,16 @@ class FixedUnemploymentForecaster:
             if gb_file.exists():
                 try:
                     with open(gb_file, 'rb') as f:
-                        self.models[region]['gradient_boosting'] = pickle.load(f)
+                        model = pickle.load(f)
+                        self.models[region]['gradient_boosting'] = model
                         models_loaded += 1
                         print(f"Loaded Gradient Boosting for {region}")
+                        
+                        # Extract feature names if not already saved
+                        if hasattr(model, 'feature_names_in_') and region not in saved_features:
+                            saved_features[region] = list(model.feature_names_in_)
+                            print(f"Extracted feature names from Gradient Boosting for {region}")
+                        
                 except Exception as e:
                     print(f"Could not load Gradient Boosting for {region}: {e}")
             
@@ -138,16 +236,37 @@ class FixedUnemploymentForecaster:
                 if model_file.exists():
                     try:
                         with open(model_file, 'rb') as f:
-                            self.models[region][model_type] = pickle.load(f)
+                            model = pickle.load(f)
+                            self.models[region][model_type] = model
                             models_loaded += 1
                             print(f"Loaded {model_type.title().replace('_', ' ')} for {region}")
+                            
+                            # Extract feature names if not already saved
+                            if hasattr(model, 'feature_names_in_') and region not in saved_features:
+                                saved_features[region] = list(model.feature_names_in_)
+                                print(f"Extracted feature names from {model_type} for {region}")
+                            
                     except Exception as e:
                         print(f"Could not load {model_type} for {region}: {e}")
             
-            # Set up feature columns (exclude target variables)
-            target_cols = [f"{r}_Male_unemployment_rate" for r in self.target_regions]
-            exclude_cols = target_cols + ['date', 'quarter', 'year']
-            self.feature_columns[region] = [col for col in self.test_data.columns if col not in exclude_cols]
+            # Set up feature columns - use saved features if available, otherwise fallback to dataset columns
+            if region in saved_features:
+                self.feature_columns[region] = saved_features[region]
+                print(f"Using saved feature set for {region}: {len(saved_features[region])} features")
+            else:
+                # Fallback to current dataset columns (may cause issues)
+                exclude_cols = self.target_columns + ['date', 'quarter', 'year']
+                self.feature_columns[region] = [col for col in self.test_data.columns if col not in exclude_cols]
+                print(f"Warning: Using dataset columns for {region} features (may cause mismatch)")
+
+        # Save feature columns for future use if we extracted them
+        if saved_features and not feature_file.exists():
+            try:
+                with open(feature_file, 'w') as f:
+                    json.dump(saved_features, f, indent=2)
+                print("Saved training features for future use")
+            except Exception as e:
+                print(f"Could not save features: {e}")
         
         print(f"Loaded {models_loaded} models successfully")
         return models_loaded > 0
@@ -156,22 +275,53 @@ class FixedUnemploymentForecaster:
         """Prepare features with proper alignment to training"""
         feature_cols = self.feature_columns[region]
         
-        # Handle missing columns
-        missing_cols = [col for col in feature_cols if col not in data.columns]
-        for col in missing_cols:
-            if 'unemployment' in col.lower():
-                data[col] = 5.0  # NZ average
-            else:
-                data[col] = 0.0
+        # Create a copy to avoid modifying original data
+        data_copy = data.copy()
         
-        # Return aligned features
-        X = data[feature_cols].ffill().fillna(0)
-        return X
+        # Handle missing columns with intelligent defaults
+        missing_cols = [col for col in feature_cols if col not in data_copy.columns]
+        if missing_cols:
+            print(f"Warning: {len(missing_cols)} features missing for {region}, filling with defaults")
+            if len(missing_cols) < 10:  # Show first few missing columns
+                print(f"   First missing: {missing_cols[:5]}")
+            for col in missing_cols:
+                if 'unemployment' in col.lower():
+                    data_copy[col] = 5.0  # NZ average unemployment rate
+                elif 'rate' in col.lower() or 'percentage' in col.lower():
+                    data_copy[col] = 0.5  # Small positive value for rates
+                elif 'gdp' in col.lower() or 'million' in col.lower():
+                    data_copy[col] = 1000.0  # Reasonable GDP baseline
+                elif 'cpi' in col.lower():
+                    data_copy[col] = 100.0  # CPI baseline
+                else:
+                    data_copy[col] = 0.0  # Default to zero for other features
+        
+        # Return aligned features with forward fill and zero fill
+        try:
+            # CRITICAL: Ensure column order matches exactly what the model expects
+            X = data_copy[feature_cols].ffill().fillna(0)
+            
+            # Double-check that we have the exact columns in the exact order
+            if list(X.columns) != feature_cols:
+                print(f"Warning: Reordering columns for {region} to match training order")
+                X = X.reindex(columns=feature_cols, fill_value=0)
+            
+            return X
+        except KeyError as e:
+            print(f"ERROR: Still missing features after alignment for {region}: {e}")
+            # Fallback: create DataFrame with zeros for all required features
+            fallback_data = pd.DataFrame(0, index=data_copy.index, columns=feature_cols)
+            return fallback_data
     
     def generate_realistic_ml_forecasts(self, region, model_type, periods=8):
         """Generate truly dynamic ML forecasts with realistic variation"""
         model = self.models[region][model_type]
-        target_col = f"{region}_Male_unemployment_rate"
+        
+        # Find the target column for this region
+        target_col = self.find_target_column_for_region(region)
+        if not target_col:
+            print(f"ERROR: No target column found for {region}")
+            return []
         
         # Create evolving dataset
         current_data = self.test_data.copy()
@@ -184,38 +334,32 @@ class FixedUnemploymentForecaster:
             # Get current features
             X_current = self.prepare_aligned_features(current_data.tail(1), region)
             
-            # Make prediction
-            prediction = model.predict(X_current)[0]
+            # Make prediction using only available historical features
+            # Convert to numpy array to avoid feature name validation issues
+            X_array = X_current.values if hasattr(X_current, 'values') else X_current
+            prediction = model.predict(X_array)[0]
             
-            # Apply bounds and add realistic variation
-            base_prediction = max(2.0, min(12.0, prediction))
-            
-            # Add economic cycle and random variation
-            cycle_effect = np.sin(period * 0.6) * 0.5  # Business cycle
-            random_shock = np.random.normal(0, 0.3)    # Economic shocks
-            trend_drift = period * 0.05                # Gradual trend
-            
-            final_prediction = base_prediction + cycle_effect + random_shock + trend_drift
-            final_prediction = max(2.0, min(12.0, final_prediction))  # Re-apply bounds
-            
+            # Apply realistic bounds without artificial noise
+            final_prediction = max(2.0, min(12.0, prediction))
             forecasts.append(float(final_prediction))
             
-            # Evolve the dataset for next prediction
-            next_row = current_data.iloc[-1].copy()
-            next_row[target_col] = final_prediction
-            
-            # Evolve key economic indicators
-            economic_features = [col for col in self.feature_columns[region] if 
-                               any(word in col.lower() for word in ['gdp', 'population', 'employment'])][:15]
-            
-            for col in economic_features:
-                if col in next_row.index and not pd.isna(next_row[col]):
-                    # Apply economic evolution
-                    evolution = np.random.normal(cycle_effect * 0.3, 0.4)
-                    next_row[col] = max(0, next_row[col] + evolution)
-            
-            # Add the evolved row
-            current_data = pd.concat([current_data, pd.DataFrame([next_row])], ignore_index=True)
+            # For multi-step forecasting, only update lag features with actual predictions
+            # NO FABRICATED ECONOMIC EVOLUTION - this causes invalid forecasts
+            if period < periods - 1:  # Don't update on last iteration
+                # Update only lag features for next prediction
+                for col in X_current.columns:
+                    if '_lag_1' in col and target_col.replace('_unemployment_rate', '') in col:
+                        X_current[col] = final_prediction
+                    elif '_lag_' in col and target_col.replace('_unemployment_rate', '') in col:
+                        # Shift lag features (lag_2 becomes lag_3, lag_1 becomes lag_2, etc.)
+                        try:
+                            lag_num = int(col.split('_lag_')[1])
+                            if lag_num > 1:
+                                prev_lag_col = col.replace(f'_lag_{lag_num}', f'_lag_{lag_num-1}')
+                                if prev_lag_col in X_current.columns:
+                                    X_current[col] = X_current[prev_lag_col]
+                        except (ValueError, IndexError):
+                            continue  # Skip malformed lag column names
         
         return forecasts
     
@@ -225,7 +369,9 @@ class FixedUnemploymentForecaster:
         
         try:
             # Get the underlying time series used for training
-            target_col = f"{region}_Male_unemployment_rate"
+            target_col = self.find_target_column_for_region(region)
+            if not target_col:
+                return []
             
             # Use the original training approach to get the time series
             train_data = pd.read_csv(self.data_dir / "train_data.csv")
@@ -239,17 +385,9 @@ class FixedUnemploymentForecaster:
             # Add realistic variation to ARIMA forecasts (they're too flat)
             varied_forecasts = []
             for i, forecast in enumerate(forecasts):
-                # Add business cycle variation
-                cycle_variation = np.sin(i * 0.4) * 0.8
-                # Add gradual trend based on recent data
-                trend_component = -0.1 * i  # Slight improvement over time
-                # Add some random noise
-                np.random.seed(42 + (hash(region) % 1000))  # Keep seed within valid range
-                noise = np.random.normal(0, 0.5)
-                
-                adjusted_forecast = forecast + cycle_variation + trend_component + noise
-                # Apply NZ unemployment bounds
-                bounded_forecast = max(2.0, min(12.0, adjusted_forecast))
+                # Apply NZ unemployment bounds to raw ARIMA forecast
+                # NO ARTIFICIAL VARIATIONS - use the statistical model's output
+                bounded_forecast = max(2.0, min(12.0, forecast))
                 varied_forecasts.append(float(bounded_forecast))
             
             return varied_forecasts
@@ -269,7 +407,9 @@ class FixedUnemploymentForecaster:
             lstm_scalers = self.models[region]['lstm_scalers']
             
             # Get last 12 periods from test data for sequence
-            target_col = f"{region}_Male_unemployment_rate"
+            target_col = self.find_target_column_for_region(region)
+            if not target_col:
+                return []
             sequence_data = self.test_data[self.test_data[target_col].notna()].tail(15)
             
             if len(sequence_data) < 12:
@@ -297,7 +437,7 @@ class FixedUnemploymentForecaster:
             for i in range(periods):
                 # Predict next value
                 pred_scaled = lstm_model.predict(sequence, verbose=0)[0][0]
-                pred = lstm_scalers['scaler_y'].inverse_transform([[pred_scaled]])[0][0]
+                pred = lstm_scalers['y_scaler'].inverse_transform([[pred_scaled]])[0][0]
                 
                 # Add realistic variation
                 variation = np.sin(i * 0.4) * 0.8 + np.random.normal(0, 0.4)
@@ -362,7 +502,9 @@ class FixedUnemploymentForecaster:
                     X_pred = X_current
                 
                 # Make prediction
-                prediction = model.predict(X_pred)[0]
+                # Convert to numpy array to avoid feature name validation issues
+                X_array = X_pred.values if hasattr(X_pred, 'values') else X_pred
+                prediction = model.predict(X_array)[0]
                 
                 # Add realistic variation and business cycle effects
                 cycle_effect = np.sin(period * 0.5) * 0.4
@@ -377,7 +519,9 @@ class FixedUnemploymentForecaster:
                 
                 # Evolve the dataset for next prediction
                 next_row = current_data.iloc[-1].copy()
-                target_col = f"{region}_Male_unemployment_rate"
+                target_col = self.find_target_column_for_region(region)
+                if not target_col:
+                    break  # Exit the loop if no target column
                 next_row[target_col] = bounded_prediction
                 
                 # Evolve economic features slightly
@@ -433,22 +577,9 @@ class FixedUnemploymentForecaster:
                 all_forecasts[region]['gradient_boosting'] = gb_forecasts
                 print(f"Gradient Boosting: {gb_forecasts[0]:.2f}% -> {gb_forecasts[-1]:.2f}%")
             
-            # LSTM forecasts
-            if 'lstm' in self.models[region] and 'lstm_scalers' in self.models[region]:
-                lstm_forecasts = self.generate_lstm_forecasts(region, forecast_periods)
-                all_forecasts[region]['lstm'] = lstm_forecasts
-                print(f"LSTM: {lstm_forecasts[0]:.2f}% -> {lstm_forecasts[-1]:.2f}%")
-            
-            # Regression Model forecasts
-            regression_models = ['linear_regression', 'ridge_regression', 'lasso_regression', 
-                               'elasticnet_regression', 'polynomial_regression']
-            
-            for model_type in regression_models:
-                if model_type in self.models[region]:
-                    reg_forecasts = self.generate_regression_forecasts(region, model_type, forecast_periods)
-                    all_forecasts[region][model_type] = reg_forecasts
-                    model_name = model_type.title().replace('_', ' ')
-                    print(f"{model_name}: {reg_forecasts[0]:.2f}% -> {reg_forecasts[-1]:.2f}%")
+            # SIMPLIFIED MODEL SELECTION: Only use the 3 best-performing models
+            # Removed LSTM and 5 regression variants to reduce complexity
+            print(f"   Using simplified model ensemble: ARIMA + RF + GB")
         
         # Create comprehensive forecast data
         forecast_data = {

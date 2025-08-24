@@ -23,6 +23,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import json
+import re
 
 class TemporalDataSplitter:
     """
@@ -35,15 +36,20 @@ class TemporalDataSplitter:
     Key Innovation: Lag features created AFTER temporal splitting, not before.
     """
     
-    def __init__(self, data_dir="data_cleaned", output_dir="model_ready_data"):
-        self.data_dir = Path(data_dir)
-        self.output_dir = Path(output_dir)
+    def __init__(self, data_dir="data_cleaned", output_dir="model_ready_data", config_file="simple_config.json"):
+        self.data_dir = Path(data_dir).resolve()
+        self.output_dir = Path(output_dir).resolve()
         self.output_dir.mkdir(exist_ok=True)
         
-        # Rolling time window configuration (dynamic based on data)
-        self.train_years = 16  # Years for training data
-        self.validation_years = 4  # Years for validation data
-        self.test_years = 2  # Minimum years for test data
+        # Load configuration
+        self.config = self.load_config(config_file)
+        
+        # Rolling time window configuration (from config or defaults)
+        forecasting_config = self.config.get('forecasting', {})
+        temporal_config = forecasting_config.get('temporal_splitting', {})
+        self.train_years = temporal_config.get('train_years', 16)
+        self.validation_years = temporal_config.get('validation_years', 4)
+        self.test_years = temporal_config.get('test_years', 2)
         
         # These will be calculated dynamically based on available data
         self.train_end = None
@@ -54,6 +60,22 @@ class TemporalDataSplitter:
         print(f"Temporal Data Splitter initialized")
         print(f"Data: {self.data_dir} -> Output: {self.output_dir}")
         print(f"Rolling window config: Train={self.train_years}y, Val={self.validation_years}y, Test>={self.test_years}y")
+    
+    def load_config(self, config_file):
+        """Load configuration from JSON file"""
+        config_path = Path(config_file)
+        if not config_path.exists():
+            print(f"WARNING: Config file {config_file} not found, using defaults")
+            return {}
+        
+        try:
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+            print(f"Configuration loaded from {config_file}")
+            return config
+        except Exception as e:
+            print(f"ERROR: Failed to load config from {config_file}: {e}")
+            return {}
     
     def load_integrated_data(self):
         """Load the integrated dataset (should not have lag features)"""
@@ -154,37 +176,162 @@ class TemporalDataSplitter:
         return train_data, validation_data, test_data
     
     def find_target_regions(self, df):
-        """Find the main target regions for forecasting"""
+        """Find target columns for forecasting using configuration-driven approach"""
         target_columns = []
         
-        # Look for Male unemployment rate columns (most complete target)
-        for col in df.columns:
-            if 'Male_unemployment_rate' in col and 'lag' not in col.lower():
-                # Extract region name
-                region = col.replace('_Male_unemployment_rate', '')
-                if region in ['Auckland', 'Wellington', 'Canterbury']:
-                    target_columns.append(col)
+        # Get forecasting configuration
+        forecasting_config = self.config.get('forecasting', {})
+        target_config = forecasting_config.get('target_columns', {})
         
-        print(f"   Found target regions: {[col.replace('_Male_unemployment_rate', '') for col in target_columns]}")
+        # Default pattern if config not found
+        pattern = target_config.get('pattern', '.*_unemployment_rate$')
+        exclude_patterns = target_config.get('exclude_patterns', ['lag', 'ma', 'change'])
+        priority_regions = target_config.get('priority_regions', ['Auckland', 'Wellington', 'Canterbury'])
+        priority_demographics = target_config.get('priority_demographics', ['European', 'Maori', 'Total'])
+        fallback_to_any = target_config.get('fallback_to_any', True)
+        
+        print(f"   Searching for target columns with pattern: {pattern}")
+        
+        # Compile regex pattern
+        try:
+            regex_pattern = re.compile(pattern)
+        except re.error as e:
+            print(f"   ERROR: Invalid regex pattern '{pattern}': {e}")
+            print(f"   Using fallback pattern: .*unemployment_rate$")
+            regex_pattern = re.compile(r".*unemployment_rate$")
+        
+        # Find all columns matching the pattern
+        candidate_columns = []
+        for col in df.columns:
+            if regex_pattern.match(col):
+                # Check if column should be excluded
+                exclude = False
+                for exclude_pattern in exclude_patterns:
+                    if exclude_pattern.lower() in col.lower():
+                        exclude = True
+                        break
+                
+                if not exclude:
+                    candidate_columns.append(col)
+        
+        print(f"   Found {len(candidate_columns)} candidate target columns")
+        
+        if not candidate_columns:
+            print(f"   ERROR: No target columns found with pattern '{pattern}'")
+            if fallback_to_any:
+                # Try to find any unemployment rate columns as fallback
+                fallback_columns = [col for col in df.columns if 'unemployment' in col.lower()]
+                if fallback_columns:
+                    print(f"   FALLBACK: Using any unemployment columns: {len(fallback_columns)} found")
+                    return fallback_columns[:10]  # Limit to first 10 to avoid too many columns
+            return []
+        
+        # Prioritize columns based on configuration
+        priority_columns = []
+        other_columns = []
+        
+        for col in candidate_columns:
+            is_priority = False
+            
+            # Check if column contains priority regions and demographics
+            for region in priority_regions:
+                if region in col:
+                    for demo in priority_demographics:
+                        if demo in col:
+                            priority_columns.append(col)
+                            is_priority = True
+                            break
+                    if is_priority:
+                        break
+            
+            if not is_priority:
+                other_columns.append(col)
+        
+        # Select final target columns
+        if priority_columns:
+            target_columns = priority_columns
+            print(f"   Using {len(priority_columns)} priority target columns")
+        elif fallback_to_any and other_columns:
+            target_columns = other_columns[:10]  # Limit to first 10
+            print(f"   No priority columns found, using first {len(target_columns)} available columns")
+        
+        # Extract region names for display
+        region_names = []
+        for col in target_columns:
+            # Try to extract region name from different patterns
+            if '_unemployment_rate' in col:
+                parts = col.replace('_unemployment_rate', '').split('_')
+                if len(parts) >= 2:
+                    region_names.append(parts[-1])  # Last part is likely the region
+                else:
+                    region_names.append(parts[0])
+        
+        print(f"   Selected target columns: {target_columns}")
+        print(f"   Target regions identified: {region_names}")
+        
         return target_columns
     
+    def safe_impute_data(self, train_df, val_df, test_df):
+        """Safely impute missing data using ONLY training data statistics to prevent leakage"""
+        print("   Performing safe data imputation (no data leakage)...")
+        
+        # Identify BUO columns that should only have values in their actual date ranges
+        buo_columns = [col for col in train_df.columns if any(keyword in col for keyword in [
+            'Computer_usage', 'ICT_support', 'ICT_attack', 'Loss_occurred', 'Reason_causes', 
+            'ICT_security_measurement', 'Outcomes_have_been_achieved', 'ICT_activities', 
+            'Internet_usage', 'Way_to_connect', 'Types_of_broadband', 'Purpose_to_use',
+            'Activities_used_to_deal', 'Use_of_internet', 'Methods_to_receive',
+            'Web_presence', 'Computer_network', 'Cellphone_provisions'
+        ])]
+        
+        print(f"   Found {len(buo_columns)} BUO columns that will not be imputed outside their data range")
+        
+        # Calculate imputation statistics from TRAINING data only
+        train_stats = {}
+        for col in train_df.select_dtypes(include=[np.number]).columns:
+            if col != 'date':
+                train_stats[col] = {
+                    'mean': train_df[col].mean(),
+                    'median': train_df[col].median(),
+                    'forward_fill': train_df[col].ffill()
+                }
+        
+        # SMART IMPUTATION - Handle unemployment target columns specifically  
+        # Preserve sparsity for economic indicators but ensure unemployment targets are clean
+        unemployment_cols = [col for col in train_df.columns if 'unemployment_rate' in col]
+        
+        # Impute unemployment target columns to prevent model training failures
+        for col in unemployment_cols:
+            if col not in buo_columns and col in train_stats:
+                # Use forward fill, backward fill, then mean as fallback
+                train_df[col] = train_df[col].ffill().bfill().fillna(train_stats[col]['mean'])
+                val_df[col] = val_df[col].ffill().bfill().fillna(train_stats[col]['mean']) 
+                test_df[col] = test_df[col].ffill().bfill().fillna(train_stats[col]['mean'])
+        
+        print("   Applied smart imputation: unemployment targets cleaned, other features preserved")
+        print(f"   Imputed {len(unemployment_cols)} unemployment columns using training data statistics")
+        return train_df, val_df, test_df
+
     def create_lag_features(self, df, target_columns, split_name):
         """Create lag features using only available historical data"""
         print(f"   Creating lag features for {split_name}...")
         
         df = df.copy()
         
+        # Get feature engineering configuration
+        forecasting_config = self.config.get('forecasting', {})
+        feature_config = forecasting_config.get('feature_engineering', {})
+        lag_periods = feature_config.get('lag_periods', [1, 4])
+        rolling_windows = feature_config.get('rolling_windows', [3])
+        economic_indicators = feature_config.get('economic_indicators', ['cpi_value', 'lci_value', 'gdp'])
+        
         # Create lag features for target variables
         lag_features_added = 0
         for target_col in target_columns:
             if target_col in df.columns:
-                # Lag 1 (previous quarter)
-                df[f'{target_col}_lag1'] = df[target_col].shift(1)
-                
-                # Lag 4 (same quarter previous year) 
-                df[f'{target_col}_lag4'] = df[target_col].shift(4)
-                
-                lag_features_added += 2
+                for lag in lag_periods:
+                    df[f'{target_col}_lag{lag}'] = df[target_col].shift(lag)
+                    lag_features_added += 1
         
         # Create lag features for related demographic columns
         for col in df.columns:
@@ -197,22 +344,30 @@ class TemporalDataSplitter:
                 df[f'{col}_lag1'] = df[col].shift(1)
                 lag_features_added += 1
         
-        # Create moving averages (3-quarter)
+        # Create moving averages
         ma_features_added = 0
         for target_col in target_columns:
             if target_col in df.columns:
-                df[f'{target_col}_ma3'] = df[target_col].rolling(window=3, min_periods=1).mean()
-                ma_features_added += 1
+                for window in rolling_windows:
+                    df[f'{target_col}_ma{window}'] = df[target_col].rolling(window=window, min_periods=1).mean()
+                    ma_features_added += 1
         
         # Create economic indicator changes
         econ_features_added = 0
-        for col in ['cpi_value', 'lci_value_LCI_All_Se']:
-            if col in df.columns:
+        for col in df.columns:
+            # Check if column matches any of the economic indicators
+            is_economic_indicator = False
+            for indicator in economic_indicators:
+                if indicator in col.lower():
+                    is_economic_indicator = True
+                    break
+            
+            if is_economic_indicator:
                 # Quarterly change
-                df[f'{col}_change'] = df[col].pct_change(fill_method=None)
+                df[f'{col}_change'] = df[col].pct_change()
                 
                 # Annual change (4 quarters)
-                df[f'{col}_annual_change'] = df[col].pct_change(periods=4, fill_method=None)
+                df[f'{col}_annual_change'] = df[col].pct_change(periods=4)
                 
                 econ_features_added += 2
         
@@ -267,6 +422,9 @@ class TemporalDataSplitter:
         
         # Perform temporal split
         train_data, validation_data, test_data = self.perform_temporal_split(df)
+        
+        # Safe data imputation using ONLY training data statistics (prevents leakage)
+        train_data, validation_data, test_data = self.safe_impute_data(train_data, validation_data, test_data)
         
         # Find target columns
         target_columns = self.find_target_regions(df)
