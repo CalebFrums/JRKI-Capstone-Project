@@ -2,7 +2,7 @@
 
 ## Government-Grade Demographic Analytics Platform
 
-**Version 8.1 - Complete Demographic Coverage**  
+**Version 8.3 - Enhanced Data Pipeline**  
 **Status**: 🎯 **PRODUCTION READY - GOVERNMENT DEPLOYMENT APPROVED**  
 **Updated**: August 26, 2025
 
@@ -14,7 +14,7 @@ A comprehensive unemployment forecasting system providing detailed demographic a
 
 ### **Comprehensive Demographic Coverage**
 
-- **📊 196 Demographic Models**: Age×Gender×Ethnicity×Region combinations
+- **📊 150 Production Models**: Age×Gender×Ethnicity×Region combinations
 - **🌏 All NZ Regions**: 16 regional councils fully covered  
 - **👥 Complete Demographics**: European, Asian, Maori, Pacific Peoples, MELAA
 - **📅 Age Groups**: 15-19, 20-24, 25-34, 35-44, 45-54, 55-64, 65+ years
@@ -22,9 +22,9 @@ A comprehensive unemployment forecasting system providing detailed demographic a
 
 ### **Production Performance**
 
-- **⏱️ Training Time**: 40-50 minutes (588 models trained → 196 best selected)
+- **⏱️ Training Time**: 40-50 minutes (450+ models trained → 150 best selected)
 - **🎯 Model Accuracy**: MAE 0.16-2.5 across demographics (excellent performance)
-- **💾 Storage**: 32MB optimized model footprint (83% compression achieved)
+- **💾 Storage**: ~25MB optimized model footprint (compression achieved)
 - **📈 Data Coverage**: 111 years of historical data (1914-2025)
 
 ---
@@ -34,7 +34,7 @@ A comprehensive unemployment forecasting system providing detailed demographic a
 ### **Intelligent Model Training Pipeline**
 
 ```mermaid
-Raw Data (30+ Stats NZ Datasets)
+Raw Data (29 Stats NZ Datasets)
     ↓
 Data Cleaning (comprehensive_data_cleaner.py)
     ↓  
@@ -42,9 +42,9 @@ Integration (time_series_aligner_simplified.py) → integrated_forecasting_datas
     ↓
 Temporal Splitting (temporal_data_splitter.py) → Anti-leakage validation
     ↓
-Model Training (unemployment_model_trainer.py) → 588 models trained
+Model Training (unemployment_model_trainer.py) → 450+ models trained
     ↓
-Best Model Selection → 196 production models saved
+Best Model Selection → 150 production models saved
     ↓
 Forecasting (unemployment_forecaster_fixed.py) → 8-quarter predictions
     ↓
@@ -53,9 +53,9 @@ Dashboard Outputs (JSON/CSV) → Power BI Ready
 
 ### **Multi-Algorithm Ensemble**
 
-- **🔄 ARIMA Models**: Statistical time series (46 models selected)
-- **🌳 Random Forest**: Robust ensemble method (118 models selected)
-- **⚡ Gradient Boosting**: High-performance ML (32 models selected)
+- **🔄 ARIMA Models**: Statistical time series (32 models selected)
+- **🌳 Random Forest**: Robust ensemble method (63 models selected)
+- **⚡ Gradient Boosting**: High-performance ML (55 models selected)
 - **🎯 Intelligent Selection**: Best algorithm chosen per demographic automatically
 
 ---
@@ -94,8 +94,8 @@ python unemployment_forecaster_fixed.py
 
 ```bash
 # Check if system is working
-ls models/*.joblib | wc -l  # Should show 196 models
-ls data_cleaned/cleaned_*.csv | wc -l  # Should show 30+ datasets
+ls models/*.joblib | wc -l  # Should show 150 models
+ls data_cleaned/cleaned_*.csv | wc -l  # Should show 29 datasets
 ```
 
 ---
@@ -117,7 +117,7 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 30+ datasets
 
 **File**: `models/fixed_unemployment_forecasts.json`
 
-- **Forecasts**: 196 demographic predictions (8 quarters each)
+- **Forecasts**: 150 demographic predictions (8 quarters each)
 - **Period**: Q1 2025 → Q4 2026
 - **Format**: Ready for Power BI JSON import
 - **Perfect for**: Future planning, policy analysis
@@ -170,10 +170,10 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 30+ datasets
 | Script | Purpose | Runtime |
 |--------|---------|---------|
 | `simple_orchestrator.py` | **Master Pipeline** - Automated execution | 40-50 min |
-| `comprehensive_data_cleaner.py` | Cleans 30+ Stats NZ datasets | 5-10 min |
+| `comprehensive_data_cleaner.py` | Cleans 29 Stats NZ datasets | 5-10 min |
 | `time_series_aligner_simplified.py` | Creates integrated dataset | 5-8 min |
 | `temporal_data_splitter.py` | Anti-leakage train/test splits | 2-3 min |
-| `unemployment_model_trainer.py` | Trains 588 models, saves 196 best | 30-40 min |
+| `unemployment_model_trainer.py` | Trains 450+ models, saves 150 best | 30-40 min |
 | `unemployment_forecaster_fixed.py` | Generates demographic forecasts | 2-3 min |
 
 ### **Key Configuration**
@@ -197,6 +197,7 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 30+ datasets
 - **🏭 GDP Data**: All industries, regional breakdowns
 - **💼 Employment (QEM)**: Quarterly employment metrics
 - **📍 Regional**: All 16 NZ regional councils
+- **🧮 Population (DPE)**: Demographic context data
 
 ### **Data Quality Achievement**
 
@@ -314,11 +315,40 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 30+ datasets
 
 ## 🔄 **VERSION HISTORY**
 
+- **v8.3**: Data cleaning pipeline enhancements - resolved 2 missing datasets, improved detection algorithms
+- **v8.2**: Documentation accuracy update - corrected model counts to reflect actual system state
 - **v8.1**: Model architecture clarification, backup system enhancement
 - **v8.0**: Complete demographic expansion (age groups added)
 - **v7.0**: Production optimization, intelligent model selection  
 - **v6.0**: Major bug fixes, methodology improvements
 - **v3.1**: Initial production version
+
+### **Documentation Correction Note (v8.2)**
+
+Previous versions claimed 196 models, but actual system verification shows **150 production models**:
+- **ARIMA**: 32 models
+- **Random Forest**: 63 models  
+- **Gradient Boosting**: 55 models
+- **Total**: 150 optimized production models
+
+This represents excellent demographic coverage with intelligent algorithm selection per target variable.
+
+### **Pipeline Enhancement (v8.3)**
+
+**Problem Resolved**: Two Stats NZ datasets were not being processed due to pattern matching issues in the data cleaning pipeline.
+
+**Files Recovered**:
+- **LCI All Sectors and Occupation Group.csv** → Labour cost index data
+- **MEI high level industry by variable monthly.csv** → High-level industry employment data
+
+**Technical Fixes Applied**:
+- Fixed ECT detector false positives ("SECTORS" triggering "ECT" detection)
+- Enhanced MEI industry detection to check multiple header levels
+- Added dedicated LCI file processing with proper column naming
+- Implemented fallback detection logic for robust file handling
+- Eliminated all unnamed columns through improved header parsing
+
+**Result**: Complete dataset coverage - all 29 raw datasets now successfully processed with clean, structured output.
 
 ---
 

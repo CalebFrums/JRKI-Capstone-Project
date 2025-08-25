@@ -52,7 +52,11 @@ class GovernmentDataCleaner:
         
         # Special handling for MEI files with complex 4-5 row headers
         if "MEI" in str(filepath).upper():
-            return self.detect_mei_header_structure(filepath, max_rows)
+            mei_result = self.detect_mei_header_structure(filepath, max_rows)
+            # If MEI detection fails, try fallback
+            if mei_result.get("quality", 0) > 0:
+                return mei_result
+            print(f"    MEI detection failed, trying fallback for {filepath.name}")
         
         # Special handling for HLF files with 4-level demographic headers
         if "HLF" in str(filepath).upper():
@@ -67,8 +71,18 @@ class GovernmentDataCleaner:
                 return self.detect_qem_header_structure(filepath, max_rows)
         
         # Special handling for ECT files with 3-level headers
-        if "ECT" in str(filepath).upper():
+        # Use more specific matching to avoid false positives (e.g., "SECTORS" contains "ECT")
+        filepath_upper = str(filepath).upper()
+        if filepath_upper.startswith("ECT") or "/ECT " in filepath_upper or "\\ECT " in filepath_upper:
             return self.detect_ect_header_structure(filepath, max_rows)
+        
+        # Special handling for LCI files (Labour Cost Index)
+        if "LCI" in filepath_upper:
+            lci_result = self.detect_lci_header_structure(filepath, max_rows)
+            # If LCI detection fails, try fallback
+            if lci_result.get("quality", 0) > 0:
+                return lci_result
+            print(f"    LCI detection failed, trying fallback for {filepath.name}")
         
         for header_rows in range(5):  # Try 0-4 header rows
             try:
@@ -183,19 +197,25 @@ class GovernmentDataCleaner:
             
             for col in df.columns:
                 if isinstance(col, tuple) and len(col) >= 4:
-                    # Check for industry categories - MEI Industry files have industries in level 2
-                    industry_text = str(col[2]) if len(col) > 2 else ""
-                    # Check for metrics in level 1
+                    # Check for industry categories - MEI Industry files have industries in level 1 or 2
+                    industry_text_level1 = str(col[1]) if len(col) > 1 else ""
+                    industry_text_level2 = str(col[2]) if len(col) > 2 else ""
+                    # Check for metrics in level 1 or 3
                     metric_text = str(col[1]) if len(col) > 1 else ""
-                    # Check for adjustment types in level 3  
-                    adjustment_text = str(col[3]) if len(col) > 3 else ""
+                    metric_text_level3 = str(col[3]) if len(col) > 3 else ""
+                    # Check for adjustment types in level 2 or 3  
+                    adjustment_text_level2 = str(col[2]) if len(col) > 2 else ""
+                    adjustment_text_level3 = str(col[3]) if len(col) > 3 else ""
                     
-                    # Check against config high-level industries
+                    # Check against config high-level industries in both level 1 and level 2
+                    industry_found = False
                     for industry in mei_high_level:
                         industry_clean = industry.replace('_', ' ').replace('-', ' ')
-                        if industry_clean.lower() in industry_text.lower():
+                        if (industry_clean.lower() in industry_text_level1.lower() or 
+                            industry_clean.lower() in industry_text_level2.lower()):
                             industry_count += 1
                             quality += 2
+                            industry_found = True
                             break
                     
                     # Also check detailed industries from config with flexible matching
@@ -224,7 +244,8 @@ class GovernmentDataCleaner:
                         
                         # Check if any variation matches
                         for variation in industry_variations:
-                            if variation.lower() in industry_text.lower():
+                            if (variation.lower() in industry_text_level1.lower() or 
+                                variation.lower() in industry_text_level2.lower()):
                                 industry_count += 1
                                 quality += 1
                                 break
@@ -235,7 +256,8 @@ class GovernmentDataCleaner:
                     # Check for sex categories from config (MEI Sex and Age files)
                     sex_categories = self.config.get('demographics', {}).get('sex_categories', [])
                     for sex in sex_categories:
-                        if sex.replace('_', ' ').lower() in industry_text.lower():
+                        if (sex.replace('_', ' ').lower() in industry_text_level1.lower() or
+                            sex.replace('_', ' ').lower() in industry_text_level2.lower()):
                             industry_count += 1  # Count as category
                             quality += 1
                             break
@@ -243,20 +265,23 @@ class GovernmentDataCleaner:
                     # Check for detailed age groups from config (MEI Sex and Age files) 
                     age_groups_detailed = self.config.get('demographics', {}).get('age_groups_detailed', [])
                     for age in age_groups_detailed:
-                        if age in adjustment_text or age in metric_text:  # Age might appear in different levels
+                        if (age in adjustment_text_level2 or age in adjustment_text_level3 or
+                            age in metric_text or age in metric_text_level3):  # Age might appear in different levels
                             adjustment_count += 1  # Count as category
                             quality += 1
                             break
                     
-                    # Check for adjustment types
+                    # Check for adjustment types in both levels 2 and 3
                     adjustment_terms = ['Actual', 'Seasonally adjusted', 'Trend']
-                    if any(term in adjustment_text for term in adjustment_terms):
+                    if (any(term in adjustment_text_level2 for term in adjustment_terms) or
+                        any(term in adjustment_text_level3 for term in adjustment_terms)):
                         adjustment_count += 1
                         quality += 1
                     
-                    # Check for MEI metrics
+                    # Check for MEI metrics in levels 1 and 3
                     metric_terms = ['Filled jobs', 'Earnings', 'cash', 'accrued', 'Employment']
-                    if any(term in metric_text for term in metric_terms):
+                    if (any(term in metric_text for term in metric_terms) or
+                        any(term in metric_text_level3 for term in metric_terms)):
                         metric_count += 1
                         quality += 1
             
@@ -274,6 +299,49 @@ class GovernmentDataCleaner:
         except Exception as e:
             print(f"    Warning: MEI industry header detection failed: {e}")
             # Final fallback to standard detection
+            return {"header_rows": 0, "columns": 0, "quality": 0}
+    
+    def detect_lci_header_structure(self, filepath, max_rows=10):
+        """Special header detection for LCI files with 3-level structure"""
+        print(f"  LCI: Detecting 3-level header structure for {filepath.name}")
+        
+        try:
+            # LCI files typically have 3 header rows
+            # Row 1: Title, Row 2: Category, Row 3: Subcategory
+            df = pd.read_csv(filepath, header=[0, 1, 2], nrows=max_rows)
+            
+            # Calculate quality based on structure - LCI files are simple and clean
+            quality = 0
+            
+            # Check if we have the basic LCI structure (2 columns usually)
+            if len(df.columns) >= 2:
+                quality += 1
+            
+            # Check for date-like first column (LCI files have quarterly data)
+            if len(df) > 0:
+                first_col_sample = str(df.iloc[0, 0]) if len(df) > 0 else ""
+                if any(char in first_col_sample for char in ['Q', '/', '-']) or first_col_sample.isdigit():
+                    quality += 2
+            
+            # Check for LCI-specific terms in column headers
+            for col in df.columns:
+                col_str = str(col).lower()
+                if any(term in col_str for term in ['labour', 'cost', 'wage', 'salary', 'industry', 'sector', 'occupation']):
+                    quality += 1
+                    break
+            
+            print(f"    LCI structure detected with quality {quality}")
+            
+            return {
+                "header_rows": 3,
+                "columns": len(df.columns),
+                "quality": quality,
+                "sample_df": df,
+                "is_lci": True
+            }
+            
+        except Exception as e:
+            print(f"    Warning: LCI header detection failed: {e}")
             return {"header_rows": 0, "columns": 0, "quality": 0}
     
     def detect_ect_header_structure(self, filepath, max_rows=10):
@@ -544,6 +612,11 @@ class GovernmentDataCleaner:
                          any(labour_term in str(col).lower() for labour_term in ['employed', 'unemployed', 'labour force', 'participation', 'employment rate', 'working age'])
                          for col in df.columns)
         
+        # Check if this is LCI data (3-level headers with labour cost/wage information)
+        is_lci_data = any(isinstance(col, tuple) and len(col) >= 3 and
+                         any(term in str(col).lower() for term in ['labour', 'cost', 'wage', 'salary', 'industry', 'sector', 'occupation'])
+                         for col in df.columns)
+        
         # Check if this is demographic data (multi-level headers with demographic groups)
         is_ethnic_data = any(isinstance(col, tuple) and len(col) >= 2 and 
                            any(ethnic in str(col) for ethnic in self.ethnic_groups) 
@@ -592,6 +665,9 @@ class GovernmentDataCleaner:
         elif is_sex_data or is_age_data:
             # Special handling for sex/age demographic data
             new_columns = self.process_demographic_columns(df.columns, is_sex_data, is_age_data)
+        elif is_lci_data:
+            # Special handling for LCI labour cost index data
+            new_columns = self.process_lci_columns(df.columns)
         else:
             # Standard column processing (for ECT, BUO, and other multi-level headers)
             for i, col in enumerate(df.columns):
@@ -821,6 +897,57 @@ class GovernmentDataCleaner:
             demo_type = "sex/age" if is_sex_data or is_age_data else "demographic"
             print(f"    Found {len(unemployment_cols)} {demo_type} unemployment rate columns")
             print(f"    Sample: {unemployment_cols[:5]}")
+        
+        return new_columns
+    
+    def process_lci_columns(self, columns):
+        """Process LCI 3-level headers: Title/Category/Subcategory"""
+        print("  LCI: Processing labour cost index data structure")
+        
+        new_columns = []
+        
+        for i, col in enumerate(columns):
+            if i == 0:
+                # First column is usually the date/period column
+                new_columns.append('date')
+            elif isinstance(col, tuple) and len(col) >= 3:
+                # Extract meaningful parts from the tuple
+                level0 = str(col[0]).strip() if len(col) > 0 else ""
+                level1 = str(col[1]).strip() if len(col) > 1 else ""
+                level2 = str(col[2]).strip() if len(col) > 2 else ""
+                
+                # Build column name from non-empty, non-unnamed parts
+                col_parts = []
+                for level in [level0, level1, level2]:
+                    if (level and 'Unnamed' not in level and 
+                        level != ' ' and level.strip()):
+                        # Clean and add the part
+                        clean_part = re.sub(r'[^\w\s-]', ' ', level)
+                        clean_part = re.sub(r'\s+', '_', clean_part).strip('_')
+                        if clean_part:
+                            col_parts.append(clean_part)
+                
+                if col_parts:
+                    col_name = '_'.join(col_parts)
+                    # Additional cleaning
+                    col_name = col_name.replace('__', '_').strip('_')
+                    col_name = col_name[:100]  # Limit length
+                else:
+                    col_name = f'lci_value_{i}'
+                    
+                new_columns.append(col_name)
+            else:
+                # Handle simple column names
+                col_str = str(col).strip()
+                if col_str and 'Unnamed' not in col_str:
+                    clean_name = re.sub(r'[^\w\s-]', ' ', col_str)
+                    clean_name = re.sub(r'\s+', '_', clean_name).strip('_')
+                    new_columns.append(clean_name if clean_name else f'lci_value_{i}')
+                else:
+                    new_columns.append(f'lci_value_{i}')
+        
+        print(f"    Generated {len(new_columns)} LCI column names")
+        print(f"    Sample: {new_columns[:3]}")
         
         return new_columns
     
@@ -1804,6 +1931,9 @@ class GovernmentDataCleaner:
             elif config.get("is_hlf", False):
                 # Special HLF file loading with 4-level headers
                 df = pd.read_csv(filepath, header=[0, 1, 2, 3])
+            elif config.get("is_lci", False):
+                # Special LCI file loading with 3-level headers
+                df = pd.read_csv(filepath, header=[0, 1, 2])
             else:
                 df = pd.read_csv(filepath, header=list(range(config["header_rows"])))
             

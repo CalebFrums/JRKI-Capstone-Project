@@ -6,7 +6,7 @@ NZ Unemployment Forecasting System - Production Pipeline
 Streamlined orchestration for quarterly data updates and model refresh.
 """
 
-import pandas as pd
+import pandas as pd # type: ignore
 import json
 import sys
 import subprocess
