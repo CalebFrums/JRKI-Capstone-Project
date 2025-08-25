@@ -34,21 +34,25 @@ A comprehensive unemployment forecasting system providing detailed demographic a
 ### **Intelligent Model Training Pipeline**
 
 ```mermaid
-Raw Data (29 Stats NZ Datasets)
-    ↓
-Data Cleaning (comprehensive_data_cleaner.py)
-    ↓  
-Integration (time_series_aligner_simplified.py) → integrated_forecasting_dataset.csv
-    ↓
-Temporal Splitting (temporal_data_splitter.py) → Anti-leakage validation
-    ↓
-Model Training (unemployment_model_trainer.py) → 450+ models trained
-    ↓
-Best Model Selection → 150 production models saved
-    ↓
-Forecasting (unemployment_forecaster_fixed.py) → 8-quarter predictions
-    ↓
-Dashboard Outputs (JSON/CSV) → Power BI Ready
+flowchart TD
+    A["Raw Data<br/>(29 Stats NZ Datasets)"] --> B["Data Cleaning<br/>comprehensive_data_cleaner.py"]
+    B --> C["Integration<br/>time_series_aligner_simplified.py"]
+    C --> D["integrated_forecasting_dataset.csv"]
+    D --> E["Temporal Splitting<br/>temporal_data_splitter.py"]
+    E --> F["Anti-leakage validation"]
+    F --> G["Model Training<br/>unemployment_model_trainer.py"]
+    G --> H["450+ models trained"]
+    H --> I["Best Model Selection"]
+    I --> J["150 production models saved"]
+    J --> K["Forecasting<br/>unemployment_forecaster_fixed.py"]
+    K --> L["8-quarter predictions"]
+    L --> M["Dashboard Outputs<br/>(JSON/CSV)"]
+    M --> N["Power BI Ready"]
+    
+    style A fill:#e1f5fe
+    style D fill:#f3e5f5
+    style J fill:#e8f5e8
+    style N fill:#fff3e0
 ```
 
 ### **Multi-Algorithm Ensemble**
