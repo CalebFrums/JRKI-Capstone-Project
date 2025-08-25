@@ -201,7 +201,6 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 29 datasets
 - **🏭 GDP Data**: All industries, regional breakdowns
 - **💼 Employment (QEM)**: Quarterly employment metrics
 - **📍 Regional**: All 16 NZ regional councils
-- **🧮 Population (DPE)**: Demographic context data
 
 ### **Data Quality Achievement**
 
