@@ -1,0 +1,59 @@
+{
+  "regions": {
+    "unemployment_core": ["Auckland", "Wellington", "Canterbury"],
+    "gdp_all": ["Northland", "Auckland", "Waikato", "Bay_of_Plenty", "Gisborne", "Hawkes_Bay", "Taranaki", "Manawatu_Whanganui", "Wellington", "West_Coast", "Canterbury", "Otago", "Southland", "Marlborough", "Tasman_Nelson", "Total_North_Island", "Total_South_Island", "New_Zealand"],
+    "cpi_regional": ["Auckland", "Wellington", "Rest_North_Island", "North_Island", "Canterbury", "Rest_South_Island", "South_Island"],
+    "ethnic_subset": ["Northland", "Auckland", "Waikato", "Bay_of_Plenty", "Canterbury"],
+    "mei_all_regions": ["Northland", "Auckland", "Waikato", "Bay of Plenty", "Gisborne", "Hawkes Bay", "Taranaki", "Manawatu-Whanganui", "Wellington", "Tasman", "Nelson", "Marlborough", "West Coast", "Canterbury", "Otago", "Southland"]
+  },
+  "demographics": {
+    "age_groups_basic": ["15-24 Years", "25-54 Years", "55+ Years", "Total All Ages"],
+    "age_groups_detailed": ["15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65+"],
+    "sex_categories": ["Male", "Female", "Total_Both_Sexes"],
+    "ethnic_groups": ["European", "Maori", "Pacific_Peoples", "Asian"]
+  },
+  "industries": {
+    "mei_industries": ["Agriculture_Forestry_Fishing", "Mining", "Manufacturing", "Electricity_Gas_Water_Waste", "Construction", "Wholesale_Trade", "Retail_Trade", "Accommodation_Food_Services", "Transport_Postal_Warehousing", "Information_Media_Telecommunications", "Financial_Insurance_Services", "Rental_Hiring_Real_Estate", "Professional_Scientific_Technical", "Administrative_Support_Services", "Public_Administration_Safety", "Education_Training", "Health_Care_Social_Assistance", "Arts_Recreation_Services", "Other_Services"],
+    "mei_high_level": ["Primary_industries", "Goods_producing_industries", "Service_industries", "All_industries"],
+    "ect_categories": ["Retail", "Hospitality", "Services", "Manufacturing", "Transport", "Construction", "Other_Industries"],
+    "buo_categories": ["ICT", "Innovation", "Digital_Technology", "E_Commerce", "Business_Operations"],
+    "qem_sectors": ["Private_Sector", "Public_Sector", "Primary_Industries", "Secondary_Industries", "Tertiary_Industries"]
+  },
+  "data_frequencies": {
+    "quarterly": ["unemployment", "gdp", "cpi", "lci", "hlf", "qem"],
+    "monthly": ["mei", "ect"],
+    "annual": ["buo"]
+  },
+  "auto_detection": {
+    "enabled": true,
+    "region_patterns": ["Auckland", "Wellington", "Canterbury", "Northland", "Waikato", "Bay.*Plenty", "Canterbury", "Otago"],
+    "age_patterns": ["\\d+-\\d+\\s*Years?", "\\d+\\+\\s*Years?", "Total.*Ages?"],
+    "fallback_to_config": true
+  },
+  "forecasting": {
+    "target_columns": {
+      "pattern": ".*[Uu]nemployment_[Rr]ate.*",
+      "exclude_patterns": ["lag", "_ma_", "_ma$", "moving_average", "change"],
+      "priority_regions": ["Auckland", "Wellington", "Canterbury"],
+      "priority_demographics": ["European", "Maori", "Asian", "Male", "Female", "15-24 Years", "25-54 Years", "55+ Years"],
+      "fallback_to_any": true
+    },
+    "demographic_comparison": {
+      "enabled": true,
+      "comparison_demographics": ["European", "Asian", "Pacific_Peoples", "Maori", "Male", "Female", "15-24 Years", "25-54 Years", "55+ Years", "Total"],
+      "analysis_regions": ["Auckland", "Wellington", "Canterbury"],
+      "separate_models": true
+    },
+    "feature_engineering": {
+      "lag_periods": [1, 4],
+      "rolling_windows": [3],
+      "economic_indicators": ["cpi_value", "lci_value", "gdp"]
+    },
+    "temporal_splitting": {
+      "train_years": 16,
+      "validation_years": 4,
+      "test_years": 2,
+      "dynamic_boundaries": true
+    }
+  }
+}

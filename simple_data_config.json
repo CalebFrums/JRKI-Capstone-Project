@@ -1,0 +1,11 @@
+{
+  "data_types": {
+    "quarterly": ["quarter", "Q"],
+    "monthly": ["month", "M"], 
+    "annual": ["year", "Y"]
+  },
+  "date_formats": ["%Y-%m-%d", "%Y-%m", "%Y"],
+  "unemployment_keywords": ["unemployment_rate", "unemployed", "jobless"],
+  "region_keywords": ["Auckland", "Wellington", "Canterbury", "Northland", "Waikato", "Bay_of_Plenty"],
+  "demographic_keywords": ["European", "Asian", "Pacific_Peoples", "Maori", "Male", "Female", "Total"]
+}
