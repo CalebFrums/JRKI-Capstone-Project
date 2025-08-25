@@ -48,6 +48,7 @@ Production-ready unemployment forecasting system for Ministry of Business Innova
 **Result**: Production-ready models with minimal storage footprint  
 
 ### [FIXED] Orchestrator Verification Path Issue
+
 **Problem**: Fresh install verification failed due to hardcoded path separators  
 **Root Cause**: Using forward slashes instead of proper Path operations  
 **Solution**: Updated verification methods to use Path / notation correctly  
@@ -56,24 +57,28 @@ Production-ready unemployment forecasting system for Ministry of Business Innova
 ### [LEGACY] Previously Fixed Critical Issues  
 
 ### [FIXED] Feature Overfitting Crisis  
+
 **Problem**: 2,036+ features with only 16 validation records (160:1 ratio)  
 **Root Cause**: Excessive feature engineering without considering sample size  
 **Solution**: Reduced to essential features only (lag1, lag4, ma3, economic indicators)  
 **Impact**: Eliminated overfitting, improved model generalization  
 
 ### [FIXED] Model Zoo Over-Engineering
+
 **Problem**: Training 27 models (9 algorithms × 3 regions) unnecessarily  
 **Root Cause**: Kitchen sink approach without performance justification  
 **Solution**: Simplified to top 2 performers only (ARIMA + Gradient Boosting)  
 **Impact**: 78% reduction in complexity, focus on proven algorithms  
 
 ### [FIXED] Data Quality Contamination
+
 **Problem**: CPI data contained systematic zero-value contamination from 1914-1916  
 **Root Cause**: Historical data artifacts not filtered during cleaning  
 **Solution**: Enhanced validation with outlier detection and range checks  
 **Impact**: Clean economic indicators for reliable forecasting  
 
 ### [FIXED] Model Validation Gaps
+
 **Problem**: No detection of identical predictions or model failures  
 **Root Cause**: Basic validation only checked bounds, not model behavior  
 **Solution**: Added comprehensive validation with identical prediction detection  
@@ -137,14 +142,16 @@ Production-ready unemployment forecasting system for Ministry of Business Innova
 ### Production Testing & Issue Resolution
 
 #### ✅ Complete System Test (August 2025)
+
 **Full orchestrator pipeline executed successfully:**
+
 - Data processing: 30 datasets cleaned and integrated ✅
 - Time series alignment: 446 quarterly periods (1914-2025) ✅
-- Temporal splitting: Proper anti-leakage methodology ✅ 
+- Temporal splitting: Proper anti-leakage methodology ✅
 - Model training: 9 models trained across 3 regions ✅
 - Forecast generation: 8-quarter forecasts produced ✅
 
-#### ✅ All Technical Issues Fixed:
+#### ✅ All Technical Issues Fixed
 
 1. **Deprecated pandas methods - FIXED:**
    - `fillna(method='ffill')` → `ffill()` ✅
@@ -166,8 +173,10 @@ Production-ready unemployment forecasting system for Ministry of Business Innova
    - Reduced excessive console output ✅
    - Maintained audit trail functionality ✅
 
-#### ✅ Production Test Results (Version 5.0):
+#### ✅ Production Test Results (Version 5.0)
+
 **System Performance:**
+
 - Fresh install simulation: ✅ PASSED
 - Incremental updates: ✅ PASSED  
 - Verification system: ✅ WORKING CORRECTLY
@@ -175,17 +184,20 @@ Production-ready unemployment forecasting system for Ministry of Business Innova
 - Type safety improvements: ✅ IMPLEMENTED
 
 **Model Performance (Latest Run):**
+
 - Auckland: Random Forest MAE: 0.369 (EXCELLENT)
 - Wellington: Random Forest MAE: 1.079 (GOOD)  
 - Canterbury: Random Forest MAE: 0.321 (EXCELLENT)
 
 **Security Compliance:**
+
 - Joblib model serialization: ✅ SECURE
 - Schema-based data processing: ✅ ROBUST
 - Type-safe operations: ✅ DOCUMENTED
 - Production orchestration: ✅ OPTIMIZED
 
 **Data Quality:**
+
 - 446 temporal records processed
 - 2036 features engineered
 - Zero data leakage confirmed
@@ -194,21 +206,25 @@ Production-ready unemployment forecasting system for Ministry of Business Innova
 ### Critical Bug Fixes (August 2025)
 
 #### 1. Data Leakage Elimination ✅
+
 **Issue**: Time series aligner forward-filled quarterly data into monthly timeline before train/test split
 **Fix**: Moved data imputation to AFTER temporal splitting using only training data statistics
 **Impact**: Models now train on methodologically correct data
 
 #### 2. Invalid Forecasting Logic ✅  
+
 **Issue**: Multi-step forecasting used simulated future economic data and artificial noise
 **Fix**: Replaced with proper lag-based forecasting using only historical patterns
 **Impact**: Forecasts now statistically valid and production-ready
 
 #### 3. Duplicate File Processing ✅
+
 **Issue**: Same data files processed by multiple cleaning functions causing corruption
 **Fix**: Each file now processed by exactly one appropriate cleaning method
 **Impact**: Clean, reliable data pipeline
 
 #### 4. Overengineering Simplified ✅
+
 **Issue**: 9+ models per region created unnecessary complexity
 **Fix**: Reduced to 3 proven performers (ARIMA, Random Forest, Gradient Boosting)
 **Impact**: Manageable, maintainable system focused on performance
@@ -224,12 +240,14 @@ Production-ready unemployment forecasting system for Ministry of Business Innova
 **Overall Grade**: B+ (Good with minor improvements needed)
 
 **Strengths**:
+
 - Excellent anti-data leakage architecture
 - Well-structured pipeline with clear separation of concerns
 - Comprehensive error handling and logging
 - Proper time series methodology
 
 **Post-Fix Status**:
+
 - All deprecated methods updated ✅
 - Configuration complexity acceptable for government requirements ✅
 - Logging streamlined while maintaining audit trails ✅
@@ -299,18 +317,21 @@ Timeline: 1986 ─────────────────────�
 **PERFORMANCE OPTIMIZATION**: Intelligent best-model selection with compressed storage.
 
 #### 1. Statistical Time Series (Baseline)
+
 - **ARIMA**: Auto-parameter selection with grid search
 - **Performance**: Excellent for time-series with strong seasonal patterns
 - **Usage**: Selected for regions where statistical patterns dominate
 
 #### 2. Machine Learning Algorithms (Evidence-Based)
-- **Random Forest**: 100 estimators, dominates regional models 
+
+- **Random Forest**: 100 estimators, dominates regional models
 - **Gradient Boosting**: 100 estimators, optimal for complex aggregated models
 - **Selection Criteria**: Validation MAE performance per region
 
 #### 3. Version 7.0 Optimizations Applied
 
 **Storage Intelligence**:
+
 ```python
 # BEFORE: Save all 308 models (183MB)
 for algorithm in [arima, rf, gb]:
@@ -323,17 +344,20 @@ save_compressed_model(best_model, compression=3)
 ```
 
 **Performance Results**:
+
 - **Male_European_Only**: 0.192 MAE (Gradient Boosting) - Exceptional
 - **Female_European_Only**: 0.166 MAE (Random Forest) - Excellent  
 - **European_Auckland**: 0.309 MAE (Random Forest) - Very Good
 - **European_Wellington**: 0.356 MAE (Gradient Boosting) - Very Good
 
 **Algorithm Distribution (Post-Optimization)**:
+
 - **Random Forest**: Most common selection (strong for regional models)
 - **Gradient Boosting**: Preferred for aggregate/total models  
 - **ARIMA**: Selected for pure time-series patterns
 
 **✅ Technical Optimizations Completed**:
+
 - Intelligent model selection per region based on validation performance
 - Compressed model files (Level 3 compression, 30% size reduction)
 - Storage reduction from 308 models to 98 best models (83% reduction)
@@ -555,11 +579,13 @@ forecasts = forecaster.generate_comprehensive_forecasts(periods=8)
 | **Maori Total** | National | ARIMA | **0.893** | Good |
 
 **Algorithm Selection Results**:
+
 - **Random Forest**: Selected for 60% of regional models
 - **Gradient Boosting**: Preferred for 35% of aggregate models  
 - **ARIMA**: Chosen for 5% of pure time-series patterns
 
 **Storage Optimization Results**:
+
 - **Previous**: 308 models across all algorithms
 - **Optimized**: 98 best-performing models only
 - **Storage**: Reduced from 183MB to 32MB (83% reduction)
@@ -586,16 +612,19 @@ The system has evolved through comprehensive iterations:
 ### Version 7.0 Optimization Achievements
 
 **Data Processing Excellence**:
+
 - ✅ 100% clean data (31 CSV files, zero unnamed columns)
 - ✅ Context tracking for complex MultiIndex structures
 - ✅ Config-driven processing preventing hardcoded dependencies
 
 **Model Training Intelligence**:  
+
 - ✅ Automatic best-model selection (98 models from 308 candidates)
 - ✅ Compressed storage (Level 3 compression, 32MB total)
 - ✅ Full demographic coverage (European, Asian, Maori, Pacific Peoples)
 
 **Production Deployment Ready**:
+
 - ✅ Optimized training pipeline (reduced complexity)
 - ✅ Best-in-class performance across all regions
 - ✅ Minimal storage footprint for enterprise deployment
@@ -650,31 +679,32 @@ The system has evolved through comprehensive iterations:
 
 **Version 7.0 Optimization Achievements:**
 
-1. **[OPTIMIZED] Data Processing Architecture**: 
+1. **[OPTIMIZED] Data Processing Architecture**:
    - ✅ Single comprehensive data cleaner maintained (centralized logic, easy debugging)
    - ✅ 100% clean data achieved (31 CSV files, zero unnamed columns)
    - ✅ Context tracking for complex MultiIndex CSV structures
    - ✅ Config-driven processing eliminating hardcoded dependencies
 
-2. **[OPTIMIZED] Model Training Performance**: 
+2. **[OPTIMIZED] Model Training Performance**:
    - ✅ Intelligent best-model selection (98 models from 308 candidates)
    - ✅ 83% storage reduction (32MB from 183MB)
    - ✅ Level 3 compression applied to all model files
    - ✅ Automated algorithm selection per region based on validation MAE
 
-3. **[OPTIMIZED] System Performance**: 
+3. **[OPTIMIZED] System Performance**:
    - ✅ Outstanding model performance (0.166-0.356 MAE for European demographics)
    - ✅ Full demographic coverage (European, Asian, Maori, Pacific Peoples)
    - ✅ Comprehensive regional forecasting (all NZ regions covered)
    - ✅ Production-ready artifacts with minimal storage footprint
 
-4. **[ENHANCED] Production Deployment**: 
+4. **[ENHANCED] Production Deployment**:
    - ✅ Optimized training pipeline architecture
    - ✅ Compressed model storage for enterprise deployment
    - ✅ Best-in-class performance maintained with reduced complexity
    - ✅ Complete forecasting capability across all demographics and regions
 
 **Previous Critical Fixes (Versions 1.0-6.0):**
+
 - ✅ Data leakage elimination
 - ✅ Feature overfitting resolution  
 - ✅ Model over-engineering simplification
@@ -717,6 +747,7 @@ The system has evolved through comprehensive iterations:
 When examining the model-ready data (test_data.csv), you may observe that many columns appear to have "identical" values across all rows. **This is correct behavior, not a bug.**
 
 **Root Cause Analysis:**
+
 - **431 out of 2037 columns** show identical values in the test period (2023-2025)
 - This represents natural data sparsity in a time series spanning 1914-2025
 - Different economic indicators have varying temporal coverage
@@ -724,11 +755,13 @@ When examining the model-ready data (test_data.csv), you may observe that many c
 #### Column Categories in Test Period
 
 **1. Economic Indicators (Legitimately Sparse)**
+
 - **46 BUO columns** (Business Operations): Data coverage 2016-2020 → NaN in test period
 - **45 GDP columns**: Data coverage 2000-2023 → NaN in test period  
 - **340 other economic indicators**: Various datasets ending before test period
 
 **2. Active Data Columns (Show Variation)**
+
 - **116 unemployment rate columns**: Show proper temporal variation
 - **Core economic indicators**: CPI, employment data with recent coverage
 - **Lag features and moving averages**: Based on available historical data
@@ -736,6 +769,7 @@ When examining the model-ready data (test_data.csv), you may observe that many c
 #### Why This Structure is Methodologically Correct
 
 **Natural Data Lifecycle:**
+
 ```
 Historical Period (1914-2020): Sparse economic indicator coverage
 Recent Period (2020-2023): Most indicators available
@@ -743,11 +777,13 @@ Test Period (2023-2025): Only unemployment and core indicators
 ```
 
 **Forecasting Realism:**
+
 - Models learn to predict using legitimately available historical data
 - No artificial forward-filling that would create misleading patterns  
 - Test period uses only data that would actually be available for forecasting
 
 **Example - BUO Data Processing:**
+
 ```
 Raw BUO data:     2016: 300.0, 2017: NaN, 2018: 258.0, 2019: NaN, 2020: 354.0
 Integrated data:  2016: [38364, 38364, 38364, 38364] (spread across quarters)
@@ -757,6 +793,7 @@ Test period:      2023-2025: [NaN, NaN, NaN, ...] (legitimately no data)
 #### Verification Commands
 
 Check data structure health:
+
 ```python
 import pandas as pd
 df = pd.read_csv('model_ready_data/test_data.csv')
@@ -772,6 +809,7 @@ for col in unemployment_cols[:3]:
 ```
 
 **Expected Results:**
+
 - Sparse columns: ~431 (mostly economic indicators ending before test period)
 - Unemployment columns: 7-9 unique values (proper temporal variation)
 - Models successfully train and predict despite apparent sparsity
@@ -779,6 +817,7 @@ for col in unemployment_cols[:3]:
 #### Key Insight
 
 The apparent "data duplication" is actually **natural data sparsity correctly preserved**. This ensures:
+
 - ✅ Methodologically sound forecasting using available data only
 - ✅ No artificial patterns from inappropriate forward-filling
 - ✅ Realistic government forecasting conditions
@@ -791,23 +830,27 @@ The apparent "data duplication" is actually **natural data sparsity correctly pr
 ### Major Changes Implemented
 
 **1. Data Processing Architecture Analysis & Decision**
-- ✅ Evaluated single comprehensive_data_cleaner.py vs separate processors 
+
+- ✅ Evaluated single comprehensive_data_cleaner.py vs separate processors
 - ✅ Decision: Maintained centralized approach for improved maintainability
 - ✅ Benefits: Unified configuration, easy debugging, atomic operations
 
 **2. Model Training Performance Optimization**
+
 - ✅ Implemented intelligent best-model selection per region
 - ✅ Added Level 3 compression to all model files (30% size reduction)
 - ✅ Storage optimization: 308 models → 98 best models (83% reduction)
 - ✅ Maintained full forecasting capability with minimal storage
 
 **3. Production Deployment Optimizations**
+
 - ✅ Updated unemployment_model_trainer.py to optimized version
 - ✅ Added save_best_models_only() method with compression
 - ✅ Implemented run_optimized_training_pipeline() for production use
 - ✅ Enhanced performance monitoring and optimization reporting
 
 **4. System Performance Validation**
+
 - ✅ Achieved outstanding performance across all demographics
 - ✅ European demographics: 0.166-0.356 MAE (excellent results)
 - ✅ Comprehensive coverage: 100 regions, all NZ demographics
@@ -816,10 +859,12 @@ The apparent "data duplication" is actually **natural data sparsity correctly pr
 ### Files Modified
 
 **Core System Files:**
+
 - `unemployment_model_trainer.py`: **OPTIMIZED** with best-model selection and compression
 - `documentation.md`: **UPDATED** with Version 7.0 optimization details
 
 **Configuration Impact:**
+
 - **Storage**: Reduced from 183MB to 32MB (83% improvement)
 - **Models**: Intelligent selection from 308 to 98 best performers
 - **Performance**: Maintained excellent forecasting with optimized footprint
@@ -827,6 +872,7 @@ The apparent "data duplication" is actually **natural data sparsity correctly pr
 ### Production Readiness Status
 
 **✅ APPROVED FOR ENTERPRISE DEPLOYMENT**
+
 - Complete optimization objectives achieved
 - Storage efficiency maximized with maintained performance
 - Best-in-class model selection and compression implemented
@@ -875,6 +921,7 @@ for demo in priority_demographics:
 ```
 
 **Results Achieved**:
+
 - ✅ **Age Demographics Fully Integrated**: All age groups now processing correctly
 - ✅ **800+ Models Trained**: Including detailed age demographics (Male_Aged_15_19_Years, Female_Aged_25_34_Years, etc.)
 - ✅ **Complete Coverage**: 15-19, 20-24, 25-34, 35-44, 45-54, 55-64, 65+ age groups
@@ -886,8 +933,9 @@ for demo in priority_demographics:
 **Problem**: Electronic Card Transaction (ECT) CSV files were being skipped for "no numeric values" despite containing valid transaction data.
 
 **Root Causes Identified**:
+
 - Missing 'date' columns due to failed date detection
-- Monthly date formats (2000M01) not being recognized 
+- Monthly date formats (2000M01) not being recognized
 - Important column protection not covering ECT-specific patterns
 
 **Comprehensive Fixes**:
@@ -932,6 +980,7 @@ if any(pattern in col_lower for pattern in [
 **Complete Solution**: Rebuilt the forecaster architecture from the ground up:
 
 **Model Discovery System**:
+
 ```python
 def discover_trained_models(self):
     """Discover all trained models from the models directory"""
@@ -949,6 +998,7 @@ def discover_trained_models(self):
 ```
 
 **Dynamic Target Mapping**:
+
 ```python
 def find_target_column_for_variable(self, target_variable):
     """Find the target column that corresponds to a target variable"""
@@ -964,6 +1014,7 @@ def find_target_column_for_variable(self, target_variable):
 ```
 
 **Comprehensive Forecasting Results**:
+
 - ✅ **196 Models Loaded Successfully**: All demographic models discovered and loaded
 - ✅ **Age Demographics Forecasting**: Including Male_Aged_15_19_Years (11.95% → 12.00%)
 - ✅ **Ethnic Demographics**: European, Asian, Maori, Pacific Peoples
@@ -975,6 +1026,7 @@ def find_target_column_for_variable(self, target_variable):
 **Testing**: Complete fresh install simulation by deleting generated files and re-running the entire pipeline.
 
 **Issues Fixed**:
+
 - DateTime parsing errors in integration stage
 - Missing integrated dataset dependencies
 - Pipeline ordering and validation
@@ -984,6 +1036,7 @@ def find_target_column_for_variable(self, target_variable):
 #### 6. Production Pipeline Orchestration ✅ COMPLETED
 
 **Full System Test Results**:
+
 ```
 Training completed successfully!
 Models trained across all demographics:
@@ -999,6 +1052,7 @@ Forecasting capability: 196 active demographic models
 ```
 
 **Forecasting System Status**:
+
 ```
 NZ UNEMPLOYMENT FORECASTING SYSTEM
 Advanced Multi-Algorithm Production Forecasting
@@ -1017,6 +1071,7 @@ System Features:
 ### Version 8.0 Technical Specifications
 
 **Data Coverage**:
+
 - **Temporal Range**: 1914-2025 (111 years of data)
 - **Total Periods**: 446 quarterly periods
 - **Variables**: 2,760 total variables tracked
@@ -1025,6 +1080,7 @@ System Features:
 - **Important Variable Completion**: 23.24%
 
 **Model Training Results**:
+
 - **Models Trained**: 800+ across all demographics
 - **Active Forecasting Models**: 196 production models
 - **Algorithms**: ARIMA, Random Forest, Gradient Boosting
@@ -1032,6 +1088,7 @@ System Features:
 - **Storage**: Optimized compressed model files
 
 **Demographic Coverage**:
+
 - **Age Groups**: 15-19, 20-24, 25-34, 35-44, 45-54, 55-64, 65+ years
 - **Gender**: Male/Female splits across all categories
 - **Ethnicity**: European, Asian, Maori, Pacific Peoples
@@ -1041,24 +1098,28 @@ System Features:
 ### Key System Enhancements
 
 **1. Data Integration Pipeline**:
+
 - ✅ Fixed quarterly date parsing bug
 - ✅ Enhanced monthly date format handling
 - ✅ Improved ECT data processing
 - ✅ Stats NZ pattern recognition
 
 **2. Model Training Framework**:
+
 - ✅ Dynamic demographic pattern matching
 - ✅ Comprehensive age group integration
 - ✅ Smart feature selection
 - ✅ Optimized storage and compression
 
 **3. Forecasting Engine**:
+
 - ✅ Complete architecture rebuild
 - ✅ Dynamic model discovery
 - ✅ Proper demographic mapping
 - ✅ Multi-algorithm ensemble forecasting
 
 **4. Quality Assurance**:
+
 - ✅ Fresh install validation
 - ✅ End-to-end pipeline testing
 - ✅ Comprehensive error handling
@@ -1069,6 +1130,7 @@ System Features:
 **SYSTEM CERTIFICATION**: ✅ **APPROVED FOR GOVERNMENT DEPLOYMENT**
 
 **Deployment Readiness**:
+
 - ✅ Complete demographic coverage (age, gender, ethnicity, region)
 - ✅ Robust data processing pipeline with all major datasets
 - ✅ Production-quality forecasting with 196 active models
@@ -1077,6 +1139,7 @@ System Features:
 - ✅ Enterprise-grade storage optimization
 
 **Performance Validation**:
+
 - ✅ Age demographics fully integrated and forecasting
 - ✅ All major NZ demographic segments covered
 - ✅ Multi-algorithm ensemble providing robust forecasts
@@ -1084,6 +1147,7 @@ System Features:
 - ✅ Dynamic multi-step forecasting operational
 
 **Quality Assurance Complete**:
+
 - ✅ 588 models trained successfully across all demographics (196 targets × 3 algorithms)
 - ✅ 196 production models actively generating forecasts
 - ✅ Complete fresh install workflow validated
@@ -1112,12 +1176,14 @@ Total: 196 targets × 3 algorithms = 588 models trained
 ```
 
 **Phase 2: Intelligent Model Selection** ✅
+
 - Tests all algorithms on validation data
 - Calculates Mean Absolute Error (MAE) for each algorithm
 - **Selects only the best-performing model per demographic**
 - Saves with Level 3 compression to reduce storage
 
 **Phase 3: Production Deployment**
+
 - **Result**: 196 production-ready `.joblib` files
 - **Each file**: Contains the winning algorithm for that demographic
 - **Storage**: Optimized with 30% compression
@@ -1135,12 +1201,14 @@ Total: 196 targets × 3 algorithms = 588 models trained
 #### Performance Metrics
 
 **Training Time Analysis**:
+
 - **Total Time**: 40-50 minutes for complete system
 - **Per Production Model**: ~15 seconds average
 - **Per Training Attempt**: ~5 seconds average
 - **Efficiency**: Excellent for government-scale demographic coverage
 
 **Algorithm Distribution** (Winners):
+
 - **Random Forest**: ~60% of production models (strong for regional data)
 - **Gradient Boosting**: ~35% of production models (excellent for aggregated data)
 - **ARIMA**: ~5% of production models (pure time-series patterns)
@@ -1148,6 +1216,7 @@ Total: 196 targets × 3 algorithms = 588 models trained
 #### Joblib File Structure
 
 **File Naming Convention**:
+
 ```
 {winning_algorithm}_{demographic_target}.joblib
 
@@ -1158,6 +1227,7 @@ Examples:
 ```
 
 **File Contents**:
+
 ```python
 Each .joblib file contains:
 - Trained model object (ARIMA/RandomForest/GradientBoosting)
@@ -1184,6 +1254,7 @@ Each .joblib file contains:
 **Solution Implemented**:
 
 #### Enhanced Backup Mechanism
+
 ```python
 def create_backup(self):
     """Robust backup with comprehensive validation"""
@@ -1199,7 +1270,9 @@ def create_backup(self):
 ```
 
 #### Backup Status Reporting
+
 Each backup now includes `backup_status.txt`:
+
 ```
 Backup created: 20250826_020243
 Status: SUCCESS - 207 files backed up
@@ -1208,6 +1281,7 @@ Data dir exists: True
 ```
 
 #### Automated Backup Cleanup
+
 ```python
 def cleanup_old_backups(self, keep_count=10):
     """Maintain backup directory with intelligent cleanup"""
@@ -1217,11 +1291,13 @@ def cleanup_old_backups(self, keep_count=10):
 ```
 
 **Testing Results**:
+
 - ✅ **New Backup Test**: 207 files successfully backed up
 - ✅ **Cleanup Test**: 15 old backups cleaned up, empty backups identified
 - ✅ **Status Validation**: Backup success/failure properly documented
 
 **Production Impact**:
+
 - **Reliability**: No more empty backups
 - **Transparency**: Clear reporting of backup contents
 - **Maintainability**: Automatic cleanup prevents directory bloat
@@ -1239,6 +1315,7 @@ def cleanup_old_backups(self, keep_count=10):
 | **Data I/O** | ~2-3 min | 5% | Reading/writing datasets and models |
 
 **Industry Comparison**:
+
 - ✅ **Simple Model**: 1-5 minutes
 - ✅ **Your System**: 40-50 minutes (optimal range)
 - **Enterprise ML**: 2-8 hours
