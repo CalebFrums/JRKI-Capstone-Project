@@ -254,7 +254,7 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 29 datasets
 
 ### **📞 Project Contacts**
 
-- **Client**: Dr. Trang Do (Tertiary Education Commission)
+- **Client**: Dr. Trang Do (Stats NZ)
 - **Target**: Ministry of Business, Innovation and Employment (MBIE)
 - **Technical Lead**: Data Science Team
 - **Status**: Ready for government presentation
