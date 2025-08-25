@@ -188,7 +188,7 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 30+ datasets
 
 ## 📈 **DATA SOURCES PROCESSED**
 
-### **30+ Stats NZ Datasets Integrated**
+### **29 Stats NZ Datasets Integrated**
 
 - **👥 Labour Force (HLF)**: Age, gender, ethnicity unemployment rates
 - **💰 Economic (ECT)**: Electronic card transaction data  
@@ -197,7 +197,6 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 30+ datasets
 - **🏭 GDP Data**: All industries, regional breakdowns
 - **💼 Employment (QEM)**: Quarterly employment metrics
 - **📍 Regional**: All 16 NZ regional councils
-- **🧮 Population (DPE)**: Demographic context data
 
 ### **Data Quality Achievement**
 
