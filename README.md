@@ -23,7 +23,7 @@ A comprehensive unemployment forecasting system providing detailed demographic a
 ### **Production Performance**
 
 - **⏱️ Training Time**: 40-50 minutes (450+ models trained → 150 best selected)
-- **🎯 Model Accuracy**: MAE 0.16-2.5 across demographics (excellent performance)
+- **🎯 Model Accuracy**: MAE 0.10-3.5% across demographics (varies by demographic complexity)
 - **💾 Storage**: ~25MB optimized model footprint (compression achieved)
 - **📈 Data Coverage**: 111 years of historical data (1914-2025)
 
@@ -202,12 +202,13 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 29 datasets
 - **💼 Employment (QEM)**: Quarterly employment metrics
 - **📍 Regional**: All 16 NZ regional councils
 
-### **Data Quality Achievement**
+### **Data Quality & Constraints**
 
-- ✅ **Missing Data**: <5% for priority demographics (23.24% completion)
 - ✅ **Temporal Coverage**: Continuous quarterly data 1914-2025
 - ✅ **Geographic Coverage**: All NZ regions included
 - ✅ **Demographic Coverage**: Complete age×gender×ethnicity combinations
+- ⚠️ **Data Sparsity**: 81.8% NaN values due to Stats NZ confidentiality markers
+- ⚠️ **Rural Minorities**: Limited predictive accuracy due to small sample sizes
 
 ---
 
@@ -217,10 +218,11 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 29 datasets
 
 | Demographic Category | Best Model | Validation MAE | Rating |
 |---------------------|------------|----------------|---------|
-| **European Demographics** | Random Forest/Gradient Boosting | 0.16-0.36 | Outstanding |
-| **Age Groups (15-24)** | Random Forest | 0.31-0.89 | Excellent |
-| **Regional Models** | Mixed Algorithms | 0.21-1.2 | Very Good |
-| **National Aggregates** | Gradient Boosting | 0.19-0.93 | Excellent |
+| **European Demographics** | Random Forest/Gradient Boosting | 0.16-0.56% | Outstanding |
+| **Age Groups (Main)** | Random Forest | 0.10-1.10% | Excellent |
+| **Regional Models (Main)** | Mixed Algorithms | 0.17-0.79% | Very Good |
+| **National Aggregates** | Gradient Boosting | 0.25-0.89% | Excellent |
+| **Ethnic Minorities (Rural)** | Mixed Algorithms | 2.0-3.5% | Limited Accuracy |
 
 ### **System Performance**
 
@@ -228,6 +230,45 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 29 datasets
 - **💾 Storage Efficiency**: 83% reduction through intelligent selection
 - **⚡ Forecast Generation**: 196 predictions in under 3 minutes
 - **🔄 Update Frequency**: Quarterly automated pipeline
+
+---
+
+## ⚠️ **LIMITATIONS & MODEL PERFORMANCE**
+
+### **Performance Distribution**
+
+- **91.3% of models** perform well (MAE < 2.0%)
+- **8.7% of models** have limited accuracy (MAE 2.0-3.5%)
+- **Problematic categories**: Ethnic minorities in rural regions
+
+### **Data Constraints (Cannot Be Improved)**
+
+#### **Stats NZ Confidentiality Rules**
+- **".." markers**: Mandatory privacy protection for small populations
+- **Legal requirement**: Statistics Act compliance prevents data access
+- **81.8% NaN values**: Result of confidentiality and temporal alignment
+
+#### **Demographic Challenges**
+- **Small populations**: Higher volatility, more confidentiality suppression
+- **Rural ethnic groups**: Limited historical data, irregular patterns
+- **Examples**: Maori Northland (3.45% MAE), Asian Southland (2.86% MAE)
+
+### **Model Reliability Guide**
+
+| Demographic Type | Reliability | Use Case |
+|-----------------|-------------|----------|
+| **European populations** | High | Policy planning, trend analysis |
+| **Major urban centers** | High | Resource allocation, forecasting |
+| **Age groups (national)** | High | Workforce planning |
+| **Ethnic minorities (major cities)** | Moderate | General trend indication |
+| **Rural ethnic minorities** | Limited | Context only, high uncertainty |
+
+### **Acceptable Performance Context**
+
+For government demographic forecasting:
+- **2-4% MAE** on difficult demographics is industry standard
+- **Public data constraints** limit all forecasting systems
+- **Trend identification** more reliable than precise point predictions
 
 ---
 
@@ -254,7 +295,7 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 29 datasets
 
 ### **📞 Project Contacts**
 
-- **Client**: Dr. Trang Do (Stats NZ)
+- **Client**: Dr. Trang Do (Tertiary Education Commission)
 - **Target**: Ministry of Business, Innovation and Employment (MBIE)
 - **Technical Lead**: Data Science Team
 - **Status**: Ready for government presentation
