@@ -128,11 +128,18 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 29 datasets
 
 #### **3. Model Performance** 📊
 
-**File**: `models/model_evaluation_report.json`
-
+**JSON Format**: `models/model_evaluation_report.json`
 - **Metrics**: MAE, RMSE, MAPE for all demographics
 - **Quality**: Prediction accuracy indicators
-- **Perfect for**: Confidence dashboards, model reliability
+- **Perfect for**: API integration, programmatic access
+
+**CSV Format** ⭐ **NEW - Power BI Optimized**:
+- `models/model_evaluation_flat.csv` - Complete flattened dataset
+- `models/evaluation_csvs/arima_evaluation.csv` - ARIMA models only
+- `models/evaluation_csvs/random_forest_evaluation.csv` - Random Forest models only
+- `models/evaluation_csvs/gradient_boosting_evaluation.csv` - Gradient Boosting models only
+
+**Perfect for**: Power BI import, dashboard creation, performance analysis
 
 #### **4. Demographic Insights** 🎭
 
@@ -359,7 +366,7 @@ For government demographic forecasting:
 
 ## 🔄 **VERSION HISTORY**
 
-- **v8.3**: Data cleaning pipeline enhancements - resolved 2 missing datasets, improved detection algorithms
+- **v8.3**: Data cleaning pipeline enhancements + Power BI CSV output - resolved 2 missing datasets, added CSV export functionality
 - **v8.2**: Documentation accuracy update - corrected model counts to reflect actual system state
 - **v8.1**: Model architecture clarification, backup system enhancement
 - **v8.0**: Complete demographic expansion (age groups added)

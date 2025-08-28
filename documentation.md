@@ -25,13 +25,14 @@ Production-ready unemployment forecasting system for Ministry of Business Innova
 
 ### Version 8.3 - Enhanced Data Pipeline (August 26, 2025)
 
-**Enhancement**: Complete dataset coverage achieved
+**Enhancement**: Complete dataset coverage achieved + Power BI Integration
 - ✅ Fixed 2 missing datasets in data cleaning pipeline
 - ✅ Enhanced pattern matching and detector selection
 - ✅ Improved multi-level header processing
 - ✅ Eliminated unnamed columns across all outputs
 - ✅ Added comprehensive fallback logic
-- **Result**: 100% dataset coverage (29/29 files processed)
+- ✅ **NEW**: Power BI compatible CSV output for model evaluation
+- **Result**: 100% dataset coverage (29/29 files processed) + CSV reporting
 
 ### Version 8.2 - Documentation Accuracy Update (August 26, 2025)
 
@@ -549,6 +550,7 @@ forecasts = forecaster.generate_comprehensive_forecasts(periods=8)
 
 #### Model Performance Report
 
+**JSON Format** (Legacy compatibility):
 ```json
 {
   "model_type": {
@@ -565,6 +567,21 @@ forecasts = forecaster.generate_comprehensive_forecasts(periods=8)
   }
 }
 ```
+
+**CSV Format** (New - Power BI compatible):
+```csv
+Algorithm,Demographic,Series_Name,Order_P,Order_D,Order_Q,AIC,Validation_MAE,Validation_RMSE,Validation_MAPE,Feature_Count
+arima,female_asian_unemployment_rate,Female Asian Unemployment Rate,1,1,0,145.2,0.892,1.234,8.5,
+random_forest,male_aged_25_34_years_unemployment_rate,Male Aged 25 34 Years Unemployment Rate,,,,0.654,0.891,,45
+gradient_boosting,european_auckland_unemployment_rate,European Auckland Unemployment Rate,,,,0.309,0.441,,52
+```
+
+**Output Files Generated**:
+- `models/model_evaluation_report.json` - Original nested format
+- `models/model_evaluation_flat.csv` - Flattened format for Power BI
+- `models/evaluation_csvs/arima_evaluation.csv` - ARIMA models only
+- `models/evaluation_csvs/random_forest_evaluation.csv` - Random Forest models only
+- `models/evaluation_csvs/gradient_boosting_evaluation.csv` - Gradient Boosting models only
 
 #### Forecast Output
 
