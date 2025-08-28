@@ -30,6 +30,7 @@ import joblib
 from typing import Dict, List, Optional, Tuple, Any, Union
 import multiprocessing as mp
 from concurrent.futures import ProcessPoolExecutor, as_completed
+import os
 
 # ML Libraries
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
@@ -801,11 +802,34 @@ class UnemploymentModelTrainer:
         # Update training summary with best models only
         self.best_models_summary = best_models
         
-        # Save performance metrics
+        # Save performance metrics as JSON (for backward compatibility)
         performance_file = self.models_dir / "model_evaluation_report.json"
         with open(performance_file, 'w') as f:
             json.dump(self.model_performance, f, indent=2, default=str)
         print(f"SAVED performance report: {performance_file}")
+        
+        # Also save as CSV for Power BI compatibility
+        try:
+            csv_df = self.convert_performance_to_csv(self.model_performance)
+            csv_file = self.models_dir / "model_evaluation_flat.csv"
+            csv_df.to_csv(csv_file, index=False)
+            print(f"SAVED CSV performance report: {csv_file}")
+            print(f"CSV contains {len(csv_df)} rows for Power BI import")
+            
+            # Create separate CSV files for each algorithm to reduce file size
+            output_dir = self.models_dir / "evaluation_csvs"
+            output_dir.mkdir(exist_ok=True)
+            
+            for algorithm in ['arima', 'random_forest', 'gradient_boosting']:
+                if algorithm in self.model_performance:
+                    algo_df = csv_df[csv_df['Algorithm'] == algorithm].copy()
+                    algo_file = output_dir / f'{algorithm}_evaluation.csv'
+                    algo_df.to_csv(algo_file, index=False)
+                    print(f"SAVED {algorithm} CSV: {algo_file} ({len(algo_df)} rows)")
+                    
+        except Exception as e:
+            print(f"WARNING: Could not create CSV files: {e}")
+            print("JSON file saved successfully, CSV generation failed")
         
         # Save feature importance (only for tree-based models)
         if hasattr(self, 'feature_importance') and self.feature_importance:
@@ -863,6 +887,78 @@ class UnemploymentModelTrainer:
         
         print(f"SAVED Optimized Training Summary: {summary_file}")
         return summary
+
+    def convert_performance_to_csv(self, performance_data):
+        """
+        Convert the model performance data to CSV format for Power BI compatibility.
+        Flattens the nested JSON structure into a tabular format.
+        """
+        rows = []
+        
+        # Process each algorithm type
+        for algorithm in performance_data:
+            if algorithm in ['arima', 'random_forest', 'gradient_boosting']:
+                algorithm_data = performance_data[algorithm]
+                
+                # Process each demographic within the algorithm
+                for demographic, metrics in algorithm_data.items():
+                    row = {
+                        'Algorithm': algorithm,
+                        'Demographic': demographic,
+                        'Series_Name': demographic.replace('_', ' ').title()
+                    }
+                    
+                    # Handle different metric types based on algorithm
+                    if algorithm == 'arima':
+                        # ARIMA has special fields
+                        row['Order_P'] = metrics.get('order', [None, None, None])[0] if 'order' in metrics else None
+                        row['Order_D'] = metrics.get('order', [None, None, None])[1] if 'order' in metrics else None
+                        row['Order_Q'] = metrics.get('order', [None, None, None])[2] if 'order' in metrics else None
+                        row['AIC'] = metrics.get('aic', None)
+                        row['Validation_MAE'] = metrics.get('validation_mae', None)
+                        row['Validation_RMSE'] = metrics.get('validation_rmse', None)
+                        row['Validation_MAPE'] = metrics.get('validation_mape', None)
+                        row['Feature_Count'] = None  # ARIMA doesn't use features
+                    else:
+                        # Random Forest and Gradient Boosting
+                        row['Order_P'] = None
+                        row['Order_D'] = None
+                        row['Order_Q'] = None
+                        row['AIC'] = None
+                        row['Validation_MAE'] = metrics.get('validation_mae', None)
+                        row['Validation_RMSE'] = metrics.get('validation_rmse', None)
+                        row['Validation_MAPE'] = None  # ML models might not have MAPE
+                        row['Feature_Count'] = metrics.get('feature_count', None)
+                    
+                    rows.append(row)
+            
+            # Handle test_results if present
+            elif algorithm == 'test_results':
+                test_data = performance_data[algorithm]
+                for demographic, models in test_data.items():
+                    for model_type, test_metrics in models.items():
+                        row = {
+                            'Algorithm': f"{model_type}_test",
+                            'Demographic': demographic,
+                            'Series_Name': demographic.replace('_', ' ').title(),
+                            'Order_P': None,
+                            'Order_D': None,
+                            'Order_Q': None,
+                            'AIC': None,
+                            'Validation_MAE': test_metrics.get('mae', None),
+                            'Validation_RMSE': test_metrics.get('rmse', None),
+                            'Validation_MAPE': None,
+                            'Feature_Count': None
+                        }
+                        rows.append(row)
+        
+        # Create DataFrame
+        df = pd.DataFrame(rows)
+        
+        # Sort by Algorithm and Demographic for better organization
+        df = df.sort_values(['Algorithm', 'Demographic'])
+        
+        return df
 
     # NOTE: Forecasting functionality moved to unemployment_forecaster_fixed.py
     # This separation ensures methodological correctness by preventing data leakage
