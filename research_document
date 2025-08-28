@@ -1,0 +1,49 @@
+ARIMA IN MACROECONOMIC FORECASTING
+https://sesug.org/proceedings/sesug_2024_SAAG/PresentationSummaries/Papers/148_Final_PDF.pdf
+https://statweb.rutgers.edu/hxiao/unemp.pdf?utm_source=chatgpt.com
+
+ARIMA
+
+ARIMA models are a longstanding staple in economic and unemployment forecasting, prized for their ability to handle non-stationary trends and short-term dynamics. For instance:
+
+Tang et al. (2005) demonstrated that ARIMA can effectively capture short-term trends in unemployment data, making it a useful tool for policymakers. The U.S. Bureau of Labor Statistics also employs ARIMA models for short-term unemployment forecasting.
+SESUG
+
+Seasonal ARIMA (SARIMA) models have been shown to significantly outperform naive benchmarks in U.S. unemployment rate forecasting across various horizons:
+
+Seasonal ARIMA and transfer-function models significantly outperform a no-change (random walk) benchmark, particularly during economic downturns.
+StatWeb
+
+RANDOM FOREST
+https://repository.up.ac.za/server/api/core/bitstreams/a4f258d4-188a-4b12-9dda-8f76859dbfa2/content
+https://arxiv.org/abs/2006.12724?utm_source=chatgpt.com
+
+Random Forest
+
+Random Forest models are powerful in capturing nonlinear effects and complex interactions among predictors—especially useful in macroeconomic forecasting contexts.
+
+Random Forests can accurately capture nonlinear links and interaction effects between predictors—such as oil-price uncertainty and other macro/financial variables—when forecasting the UK unemployment rate over 150 years of monthly data.
+UPSpace Repository
+
+In macroeconomic applications, a specialized version (Macroeconomic Random Forest) even outperforms linear models in forecasting unemployment:
+
+The Macroeconomic Random Forest (MRF) delivers clear forecast gains in predicting the 2008 rise in unemployment and allows interpretable, time-varying parameter estimation.
+arXiv
+
+GRADIENT BOOSTING / ML ENSEMBLING
+
+https://annals-csis.org/Volume_38/drp/pdf/12.pdf?utm_source=chatgpt.com
+https://arxiv.org/abs/2505.01933?utm_source=chatgpt.com
+
+Gradient Boosting / ML Ensembling
+
+Ensemble ML models—including Random Forest, Gradient Boosting, and others—are widely applied to unemployment forecasting with increases in accuracy over traditional methods:
+
+A supervised ML study compared SVM, Random Forest, Gradient Boosting, and Extreme Learning Machine in state-level unemployment rate prediction, utilizing these for improved accuracy.
+ACM Transactions
+RJPN Research Journal
+
+Recent research compared ML methods directly on monthly U.S. unemployment data:
+
+A 2025 study evaluated Random Forest, XGBoost, CatBoost, and others against standard regression models to produce timely unemployment forecasts.
+arXiv
