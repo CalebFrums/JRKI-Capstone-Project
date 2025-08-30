@@ -15,7 +15,7 @@ Features:
 - Comprehensive feature engineering with economic indicators
 - Quality assurance and validation reporting
 
-Author: Data Science Team
+Author: JRKI Team
 Version: Production v2.0
 """
 

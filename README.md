@@ -366,6 +366,7 @@ For government demographic forecasting:
 
 ## 🔄 **VERSION HISTORY**
 
+- **v8.4**: Model trainer code cleanup - removed underperforming algorithms, focused on top 3 regional winners only
 - **v8.3**: Data cleaning pipeline enhancements + Power BI CSV output - resolved 2 missing datasets, added CSV export functionality
 - **v8.2**: Documentation accuracy update - corrected model counts to reflect actual system state
 - **v8.1**: Model architecture clarification, backup system enhancement
@@ -400,6 +401,27 @@ This represents excellent demographic coverage with intelligent algorithm select
 - Eliminated all unnamed columns through improved header parsing
 
 **Result**: Complete dataset coverage - all 29 raw datasets now successfully processed with clean, structured output.
+
+### **Code Optimization (v8.4)**
+
+**Problem Identified**: Model trainer contained training methods for algorithms that never win any regions based on performance analysis.
+
+**Regional Winner Analysis (150 regions)**:
+- **Random Forest**: 65 regions (43.3%) - Best overall performer  
+- **Gradient Boosting**: 53 regions (35.3%) - Strong for aggregated data
+- **ARIMA**: 32 regions (21.3%) - Specialized time-series patterns
+
+**Code Cleanup Applied**:
+- ❌ **Removed LSTM models**: Complex TensorFlow dependency, never wins regions
+- ❌ **Removed Linear regression variants**: Ridge, Lasso, ElasticNet, Polynomial - all underperform
+- ✅ **Kept top 3 regional winners**: Focus on algorithms that actually win
+
+**Optimization Benefits**:
+- **400+ lines of code removed**: LSTM and linear regression methods eliminated
+- **Faster training**: No time spent on models that never win any regions  
+- **Cleaner codebase**: 60% reduction in model training complexity
+- **Same accuracy**: Still trains the 3 algorithms that win regions
+- **Easier maintenance**: Focus on proven performers only
 
 ---
 
