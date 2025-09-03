@@ -300,6 +300,39 @@ class SimpleTimeSeriesAligner:
         
         return timeline
     
+    def add_dataset_prefixes(self, df, filename):
+        """Add dataset prefixes to column names for better organization"""
+        # Create dataset prefix mapping
+        prefix_map = {
+            'GDP': ['GDP All Industries'],
+            'CPI': ['CPI All Groups', 'CPI Regional'],
+            'HLF': ['HLF Labour', 'Labour force', 'Labour Force'],
+            'ECT': ['ECT electronic', 'ECT means', 'ECT Number', 'ECT Total', 'ECT Totals'],
+            'QEM': ['QEM average', 'QEM Average', 'QEM Filled', 'QEM filled'],
+            'MEI': ['MEI Age', 'MEI high', 'MEI Industry', 'MEI Sex'],
+            'LCI': ['LCI All'],
+            'BUO': ['BUO ICT', 'BUO Totals', 'BUO innovation']
+        }
+        
+        # Find matching prefix
+        dataset_prefix = None
+        for prefix, patterns in prefix_map.items():
+            if any(pattern in filename for pattern in patterns):
+                dataset_prefix = prefix
+                break
+        
+        if dataset_prefix is None:
+            # Fallback to generic naming if no match
+            dataset_prefix = filename.replace('cleaned_', '').split(' ')[0].upper()[:3]
+        
+        # Apply prefix to all columns except 'date'
+        new_df = df.copy()
+        for col in new_df.columns:
+            if col != 'date':
+                new_df = new_df.rename(columns={col: f"{dataset_prefix}_{col}"})
+        
+        return new_df
+    
     def align_data_to_timeline(self, df, master_timeline, filename):
         """Align data to quarterly timeline, properly handling different frequencies"""
         # Determine data frequency
@@ -497,6 +530,9 @@ class SimpleTimeSeriesAligner:
             
             # Align data to master timeline (handles monthly/quarterly conversion)
             aligned_df = self.align_data_to_timeline(clean_df, master_timeline, filename)
+            
+            # Add dataset prefixes for better column organization
+            aligned_df = self.add_dataset_prefixes(aligned_df, filename)
             
             if is_age_file:
                 print(f"   DEBUG AGE FILE: After alignment columns={len(aligned_df.columns)}, rows={len(aligned_df)}")
