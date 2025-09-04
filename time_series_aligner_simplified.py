@@ -170,7 +170,28 @@ class SimpleTimeSeriesAligner:
                             # Convert 2000M02 -> 2000-02-01
                             df['date'] = df['date'].str.replace('M', '-') + '-01'
                     
-                    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+                    # Handle different date formats explicitly to avoid warnings
+                    if df['date'].dtype == 'object':
+                        # Try to infer format to avoid parsing warnings
+                        sample_dates = df['date'].dropna().head(10).astype(str)
+                        if any('M' in d and len(d) == 7 for d in sample_dates):
+                            # Format like 2000M02
+                            df['date'] = pd.to_datetime(df['date'].str.replace('M', '-') + '-01', format='%Y-%m-%d', errors='coerce')
+                        elif any('Q' in d for d in sample_dates):
+                            # Quarterly format - already handled above, skip extra parsing
+                            pass
+                        elif any('-' in d for d in sample_dates):
+                            # Standard date format with explicit format specification
+                            try:
+                                df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d', errors='coerce')
+                            except:
+                                df['date'] = pd.to_datetime(df['date'], errors='coerce')
+                        else:
+                            # Fallback for other formats - pandas now infers automatically
+                            df['date'] = pd.to_datetime(df['date'], errors='coerce')
+                    else:
+                        # Already datetime, no conversion needed
+                        pass
                     # Remove rows with invalid dates
                     df = df.dropna(subset=['date'])
                 
@@ -279,7 +300,17 @@ class SimpleTimeSeriesAligner:
         all_dates = []
         for df in datasets.values():
             if 'date' in df.columns:
-                valid_dates = pd.to_datetime(df['date'], errors='coerce').dropna()
+                # Check if already datetime type to avoid parsing warnings
+                if df['date'].dtype.name.startswith('datetime'):
+                    valid_dates = df['date'].dropna()
+                else:
+                    # Only parse if not already datetime - try common formats first
+                    try:
+                        # Use format='mixed' for mixed/inconsistent date formats to avoid warnings
+                        valid_dates = pd.to_datetime(df['date'], format='mixed', errors='coerce').dropna()
+                    except:
+                        # Fallback for older pandas versions that don't support format='mixed'
+                        valid_dates = pd.to_datetime(df['date'], errors='coerce').dropna()
                 all_dates.extend(valid_dates)
         
         if not all_dates:
@@ -344,6 +375,7 @@ class SimpleTimeSeriesAligner:
         if is_annual_data:
             print(f"   - Handling annual {filename} data (spreading to quarters)")
             aligned_df = pd.DataFrame({'date': master_timeline})
+            aligned_df['date'] = pd.to_datetime(aligned_df['date'])
             
             # Get actual data date range to avoid spreading outside real data period
             if len(df) > 0:
@@ -360,6 +392,8 @@ class SimpleTimeSeriesAligner:
                 print(f"     WARNING: No valid data rows in {filename}")
                 return aligned_df
             
+            # Collect all columns to add at once to avoid DataFrame fragmentation
+            columns_to_add = {}
             for col in df.columns:
                 if col != 'date':
                     # Create annual mapping
@@ -379,7 +413,12 @@ class SimpleTimeSeriesAligner:
                         else:
                             quarterly_values.append(np.nan)
                     
-                    aligned_df[col] = quarterly_values
+                    columns_to_add[col] = quarterly_values
+            
+            # Add all columns at once using pd.concat to avoid fragmentation
+            if columns_to_add:
+                new_cols_df = pd.DataFrame(columns_to_add, index=aligned_df.index)
+                aligned_df = pd.concat([aligned_df, new_cols_df], axis=1)
         
         # Handle monthly data - aggregate to quarters (no artificial repetition)
         elif is_monthly_data:
@@ -395,22 +434,34 @@ class SimpleTimeSeriesAligner:
             
             # Aggregate by taking mean of monthly values in each quarter
             aligned_df = pd.DataFrame({'date': master_timeline})
+            aligned_df['date'] = pd.to_datetime(aligned_df['date'])
             for col in df_copy.columns:
                 if col != 'date' and col != 'quarter':
                     quarterly_col = df_copy.groupby('quarter')[col].mean().reset_index()
                     quarterly_col.rename(columns={'quarter': 'date'}, inplace=True)
+                    quarterly_col['date'] = pd.to_datetime(quarterly_col['date'])
                     aligned_df = aligned_df.merge(quarterly_col, on='date', how='left')
         
         # Handle quarterly data - direct alignment (no frequency conversion)
         elif is_quarterly_data:
             print(f"   - Direct quarterly alignment for {filename}")
             aligned_df = pd.DataFrame({'date': master_timeline})
+            aligned_df['date'] = pd.to_datetime(aligned_df['date'])
+            try:
+                df['date'] = pd.to_datetime(df['date'], format='mixed', errors='coerce')
+            except:
+                df['date'] = pd.to_datetime(df['date'], errors='coerce')
             aligned_df = aligned_df.merge(df, on='date', how='left')
         
         # Default case - direct alignment
         else:
             print(f"   - Default alignment for {filename}")
             aligned_df = pd.DataFrame({'date': master_timeline})
+            aligned_df['date'] = pd.to_datetime(aligned_df['date'])
+            try:
+                df['date'] = pd.to_datetime(df['date'], format='mixed', errors='coerce')
+            except:
+                df['date'] = pd.to_datetime(df['date'], errors='coerce')
             aligned_df = aligned_df.merge(df, on='date', how='left')
         
         return aligned_df
@@ -456,6 +507,8 @@ class SimpleTimeSeriesAligner:
         
         # Step 3: Create base dataframe
         integrated = pd.DataFrame({'date': master_timeline})
+        # Ensure master timeline is datetime type
+        integrated['date'] = pd.to_datetime(integrated['date'])
         
         # Step 4: Process each dataset type
         unemployment_added = False
@@ -534,6 +587,19 @@ class SimpleTimeSeriesAligner:
             # Add dataset prefixes for better column organization
             aligned_df = self.add_dataset_prefixes(aligned_df, filename)
             
+            # Ensure consistent datetime type for merge compatibility
+            if 'date' in aligned_df.columns:
+                try:
+                    aligned_df['date'] = pd.to_datetime(aligned_df['date'], format='mixed', errors='coerce')
+                except:
+                    aligned_df['date'] = pd.to_datetime(aligned_df['date'], errors='coerce')
+                # Also ensure the integrated df date column is datetime
+                if 'date' in integrated.columns:
+                    try:
+                        integrated['date'] = pd.to_datetime(integrated['date'], format='mixed', errors='coerce')
+                    except:
+                        integrated['date'] = pd.to_datetime(integrated['date'], errors='coerce')
+            
             if is_age_file:
                 print(f"   DEBUG AGE FILE: After alignment columns={len(aligned_df.columns)}, rows={len(aligned_df)}")
             
@@ -566,13 +632,21 @@ class SimpleTimeSeriesAligner:
                 conflicts = existing_cols.intersection(new_cols)
                 
                 if conflicts:
-                    print(f"      WARNING: Column conflicts detected: {list(conflicts)[:3]}...")
-                    # Use dataset-specific suffix only when necessary
-                    dataset_id = dataset_type[:4]  # Use short, meaningful suffix
-                    integrated = integrated.merge(aligned_df, on='date', how='left', suffixes=('', f'_{dataset_id}'))
-                else:
-                    # No conflicts - merge cleanly without suffix
-                    integrated = integrated.merge(aligned_df, on='date', how='left')
+                    print(f"      INFO: Resolving {len(conflicts)} column conflicts...")
+                    # Rename conflicting columns in new dataset to avoid duplicates
+                    rename_map = {}
+                    for conflict_col in conflicts:
+                        # Create unique name based on dataset type and original name
+                        base_name = conflict_col.replace('HLF_', '').replace('_', '')
+                        new_name = f"HLF_{dataset_type}_{base_name}"
+                        rename_map[conflict_col] = new_name
+                    
+                    # Apply renames to the new dataset
+                    aligned_df = aligned_df.rename(columns=rename_map)
+                    print(f"      Renamed {len(rename_map)} conflicting columns with '{dataset_type}' prefix")
+                
+                # Merge cleanly - no conflicts now
+                integrated = integrated.merge(aligned_df, on='date', how='left')
             else:
                 # Economic indicators - use standard suffix approach
                 economic_indicators += 1
@@ -596,23 +670,43 @@ class SimpleTimeSeriesAligner:
         """Find essential regional unemployment totals for comprehensive forecasting"""
         target_cols = []
         
-        # First priority: Total All Ages unemployment for main regions
+        # Debug: Show available unemployment columns
+        unemployment_cols = [col for col in df.columns if 'unemployment' in col.lower()]
+        if len(unemployment_cols) > 0:
+            print(f"   Found {len(unemployment_cols)} unemployment columns, searching for targets...")
+            
+        # First priority: Look for any unemployment rate columns with regional patterns
         for col in df.columns:
             col_lower = col.lower()
-            if 'unemployment' in col_lower and 'total_all_ages' in col_lower:
-                target_cols.append(col)
+            if 'unemployment_rate' in col_lower or 'unemployment' in col_lower:
+                # Look for regional patterns in column names
+                regions = ['auckland', 'wellington', 'canterbury', 'northland', 'waikato', 'otago', 'bay', 'hawke', 'taranaki', 'west_coast', 'southland', 'nelson', 'marlborough', 'gisborne']
+                if any(region in col_lower for region in regions):
+                    target_cols.append(col)
+                # Also include any column with 'total' or 'all_ages' indicators
+                elif 'total' in col_lower or 'all_ages' in col_lower:
+                    target_cols.append(col)
         
-        # If no Total All Ages found, look for regional totals from Sex Regional dataset
-        if len(target_cols) < 3:
-            priority_regions = ['Auckland', 'Wellington', 'Canterbury', 'Northland', 'Waikato', 'Otago']
+        # If still no targets found, include any unemployment rate column
+        if len(target_cols) == 0:
             for col in df.columns:
                 col_lower = col.lower()
-                if 'unemployment' in col_lower:
-                    # Check for regional totals (not demographic breakdowns)
-                    if any(f'{region.lower()}_total_all_ages' in col_lower for region in priority_regions):
-                        target_cols.append(col)
+                if 'unemployment_rate' in col_lower:
+                    target_cols.append(col)
         
-        return target_cols[:6]  # Maximum 6 regional targets for comprehensive coverage
+        # If still nothing, look for broader unemployment patterns
+        if len(target_cols) == 0:
+            for col in df.columns:
+                col_lower = col.lower()
+                if 'unemployment' in col_lower and 'rate' in col_lower:
+                    target_cols.append(col)
+        
+        if len(target_cols) > 0:
+            print(f"   Located {len(target_cols)} regional unemployment targets")
+        else:
+            print(f"   DEBUG: No unemployment targets found in columns: {[col for col in df.columns if 'unemployment' in col.lower()][:5]}")
+        
+        return target_cols[:8]  # Maximum 8 targets for comprehensive coverage
     
     def clean_unemployment_outliers(self, df):
         """Clean extreme unemployment outliers using statistical methods"""

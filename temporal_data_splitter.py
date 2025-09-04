@@ -305,11 +305,21 @@ class TemporalDataSplitter:
         train_stats = {}
         for col in train_df.select_dtypes(include=[np.number]).columns:
             if col != 'date':
-                train_stats[col] = {
-                    'mean': train_df[col].mean(),
-                    'median': train_df[col].median(),
-                    'forward_fill': train_df[col].ffill()
-                }
+                # Safe calculation to avoid empty slice warnings
+                col_values = train_df[col].dropna()
+                if len(col_values) > 0:
+                    train_stats[col] = {
+                        'mean': col_values.mean(),
+                        'median': col_values.median(),
+                        'forward_fill': train_df[col].ffill()
+                    }
+                else:
+                    # Handle empty columns safely
+                    train_stats[col] = {
+                        'mean': 0.0,
+                        'median': 0.0,
+                        'forward_fill': train_df[col].ffill()
+                    }
         
         # SMART IMPUTATION - Handle unemployment target columns specifically  
         # Preserve sparsity for economic indicators but ensure unemployment targets are clean
@@ -361,8 +371,15 @@ class TemporalDataSplitter:
         ma_features_added = 0
         if target_columns and target_columns[0] in df.columns:
             primary_target = target_columns[0]
-            df[f'{primary_target}_ma3'] = df[primary_target].rolling(window=3, min_periods=1).mean()
-            ma_features_added = 1
+            # Safe rolling mean calculation - check for sufficient non-null values
+            target_values = df[primary_target].dropna()
+            if len(target_values) >= 3:  # Only calculate if we have sufficient data
+                df[f'{primary_target}_ma3'] = df[primary_target].rolling(window=3, min_periods=1).mean()
+                ma_features_added = 1
+            else:
+                # For insufficient data, just copy the target values
+                df[f'{primary_target}_ma3'] = df[primary_target]
+                ma_features_added = 1
         
         print(f"     SIMPLIFIED FEATURE SET:")
         print(f"     Added {lag_features_added} essential lag features")
