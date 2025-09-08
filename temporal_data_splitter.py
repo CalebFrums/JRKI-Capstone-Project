@@ -308,11 +308,21 @@ class TemporalDataSplitter:
                 # Safe calculation to avoid empty slice warnings
                 col_values = train_df[col].dropna()
                 if len(col_values) > 0:
-                    train_stats[col] = {
-                        'mean': col_values.mean(),
-                        'median': col_values.median(),
-                        'forward_fill': train_df[col].ffill()
-                    }
+                    # Additional safety check to ensure values are finite
+                    finite_values = col_values[np.isfinite(col_values)]
+                    if len(finite_values) > 0:
+                        train_stats[col] = {
+                            'mean': finite_values.mean(),
+                            'median': finite_values.median(),
+                            'forward_fill': train_df[col].ffill()
+                        }
+                    else:
+                        # All values are infinite or NaN
+                        train_stats[col] = {
+                            'mean': 0.0,
+                            'median': 0.0,
+                            'forward_fill': train_df[col].ffill()
+                        }
                 else:
                     # Handle empty columns safely
                     train_stats[col] = {
@@ -328,10 +338,30 @@ class TemporalDataSplitter:
         # Impute unemployment target columns to prevent model training failures
         for col in unemployment_cols:
             if col not in buo_columns and col in train_stats:
-                # Use forward fill, backward fill, then mean as fallback
-                train_df[col] = train_df[col].ffill().bfill().fillna(train_stats[col]['mean'])
-                val_df[col] = val_df[col].ffill().bfill().fillna(train_stats[col]['mean']) 
-                test_df[col] = test_df[col].ffill().bfill().fillna(train_stats[col]['mean'])
+                # Multi-stage robust imputation for unemployment targets
+                fallback_mean = train_stats[col]['mean']
+                
+                # Stage 1: Forward fill, backward fill
+                train_df[col] = train_df[col].ffill().bfill()
+                val_df[col] = val_df[col].ffill().bfill()
+                test_df[col] = test_df[col].ffill().bfill()
+                
+                # Stage 2: Use training mean, but with safety check for NaN
+                if pd.isna(fallback_mean):
+                    # If training mean is NaN, use median or global fallback
+                    fallback_median = train_stats[col]['median']
+                    if pd.isna(fallback_median):
+                        # Last resort: use reasonable unemployment rate default
+                        fallback_value = 5.0  # 5% unemployment as reasonable default
+                    else:
+                        fallback_value = fallback_median
+                else:
+                    fallback_value = fallback_mean
+                
+                # Apply fallback value to remaining NaN values
+                train_df[col] = train_df[col].fillna(fallback_value)
+                val_df[col] = val_df[col].fillna(fallback_value)
+                test_df[col] = test_df[col].fillna(fallback_value)
         
         print("   Applied smart imputation: unemployment targets cleaned, other features preserved")
         print(f"   Imputed {len(unemployment_cols)} unemployment columns using training data statistics")
@@ -356,16 +386,34 @@ class TemporalDataSplitter:
                 df[f'{target_col}_lag4'] = df[target_col].shift(4)
                 lag_features_added += 2
         
-        # Add only the most essential economic indicators (max 3)
-        essential_indicators = ['cpi_value', 'lci_value']  # Removed GDP to reduce features
+        # Add key economic indicators for better forecasting
+        essential_indicators = ['cpi_value', 'lci_value', 'gdp']
         econ_features_added = 0
         
+        # Add change features for key economic indicators (limit to 2 to avoid overfitting)
+        indicators_added = 0
         for col in df.columns:
-            if any(indicator in col.lower() for indicator in essential_indicators):
-                # Only quarterly change, not annual
+            if any(indicator in col.lower() for indicator in essential_indicators) and indicators_added < 2:
+                # Add quarterly change for economic context
                 df[f'{col}_change'] = df[col].pct_change()
                 econ_features_added += 1
-                break  # Only add first matching economic indicator
+                indicators_added += 1
+        
+        # Add temporal features for better forecasting
+        temporal_features_added = 0
+        
+        # Add quarterly seasonal features if date column exists
+        if 'date' in df.columns:
+            try:
+                dates = pd.to_datetime(df['date'])
+                # Quarterly seasonality (key for unemployment data)
+                df['quarter_sin'] = np.sin(2 * np.pi * dates.dt.quarter / 4)
+                df['quarter_cos'] = np.cos(2 * np.pi * dates.dt.quarter / 4)
+                # Simple trend component
+                df['time_trend'] = range(len(df))
+                temporal_features_added = 3
+            except Exception:
+                pass
         
         # Add only 3-period moving average for primary target (not all targets)
         ma_features_added = 0
@@ -385,7 +433,8 @@ class TemporalDataSplitter:
         print(f"     Added {lag_features_added} essential lag features")
         print(f"     Added {ma_features_added} moving average feature")
         print(f"     Added {econ_features_added} economic indicator")
-        print(f"     TOTAL NEW FEATURES: {lag_features_added + ma_features_added + econ_features_added}")
+        print(f"     Added {temporal_features_added} temporal features")
+        print(f"     TOTAL NEW FEATURES: {lag_features_added + ma_features_added + econ_features_added + temporal_features_added}")
         
         return df
     

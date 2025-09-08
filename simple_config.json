@@ -33,7 +33,7 @@
   "forecasting": {
     "target_columns": {
       "pattern": ".*[Uu]nemployment_[Rr]ate.*",
-      "exclude_patterns": ["lag", "_ma_", "_ma$", "moving_average", "change"],
+      "exclude_patterns": ["_backup", "_temp", "_old"],
       "priority_regions": ["Auckland", "Wellington", "Canterbury"],
       "priority_demographics": ["European", "Maori", "Asian", "Male", "Female", "15-24 Years", "25-54 Years", "55+ Years"],
       "fallback_to_any": true

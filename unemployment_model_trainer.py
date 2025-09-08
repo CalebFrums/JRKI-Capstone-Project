@@ -1,23 +1,17 @@
 #!/usr/bin/env python3
 """
-Optimized Model Training System
-NZ Unemployment Forecasting System - High-Performance Model Development
-
-OPTIMIZATIONS APPLIED:
-- Only saves best performing model per region (60% storage reduction)
-- Parallel processing for 3-5x speed improvement  
-- Single data load with reuse across all models
-- Compressed model files (30% size reduction)
-- Memory-efficient training pipeline
+Random Forest Model Training System
+NZ Unemployment Forecasting System - Random Forest Implementation
 
 Features:
-- Multi-algorithm model training (ARIMA, Random Forest, Gradient Boosting)
-- Regional-specific model optimization with best-model selection
-- Comprehensive performance evaluation and comparison
-- Production-ready model artifacts with minimal storage footprint
+- Random Forest Regressor for all regions
+- Regional-specific model training and evaluation
+- Compressed model files for efficient storage
+- Memory-efficient training pipeline
+- Production-ready model artifacts
 
 Author: Data Science Team
-Version: Production v2.1 OPTIMIZED
+Version: Production v2.2 Random Forest
 """
 
 import pandas as pd
@@ -33,33 +27,21 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import os
 
 # ML Libraries
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-# Removed linear regression imports - not in top 3 performers
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
-# Removed StandardScaler, MinMaxScaler - not needed for top 3 performers
-import statsmodels.api as sm
-from statsmodels.tsa.arima.model import ARIMA
-
-# Removed TensorFlow/LSTM dependencies - not in top 3 performers
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings('ignore')
 
 class UnemploymentModelTrainer:
     """
-    Professional multi-algorithm model training system for unemployment forecasting.
+    Random Forest model training system for unemployment forecasting.
     
-    This class provides comprehensive machine learning model training capabilities
-    across multiple algorithms and regional targets. Designed for production use
+    This class provides Random Forest machine learning model training capabilities
+    for regional unemployment forecasting. Designed for production use
     in government forecasting applications with robust evaluation and persistence.
     
-    Top 3 Performing Models (regional winners distribution):
-    - Random Forest (43.3% of regions) - 1.0014 avg MAE
-    - Gradient Boosting (35.3% of regions) - 1.1315 avg MAE  
-    - ARIMA (21.3% of regions) - 1.2309 avg MAE
-    
-    Note: All 3 models needed as different models excel in different regions
-    
+    Model: Random Forest Regressor
     Target Regions: Auckland, Wellington, Canterbury
     """
     
@@ -210,100 +192,26 @@ class UnemploymentModelTrainer:
             else:
                 # Other columns: standard imputation
                 X[col] = X[col].ffill().fillna(0)
+        
         # FIXED: Handle NaN in target variable properly
         y = dataset[target_col].ffill().bfill().fillna(dataset[target_col].mean())
         
         return X, y, feature_cols
 
-    def train_arima_models(self):
-        """Train ARIMA models for each target region"""
-        print("\nTraining ARIMA Models...")
-        
-        arima_models = {}
-        arima_performance = {}
-        
-        for target_col in self.target_columns:
-            region = self.extract_region_from_column(target_col)
-            print(f"\nTraining ARIMA for {region}...")
-            
-            try:
-                # Prepare time series data
-                train_data_copy = self.train_data.copy()
-                validation_data_copy = self.validation_data.copy()
-                
-                # Ensure date column is datetime
-                train_data_copy['date'] = pd.to_datetime(train_data_copy['date'])
-                validation_data_copy['date'] = pd.to_datetime(validation_data_copy['date'])
-                
-                train_series = train_data_copy.set_index('date')[target_col].dropna().sort_index()
-                validation_series = validation_data_copy.set_index('date')[target_col].dropna().sort_index()
-                
-                if len(train_series) < 20:  # Need minimum data for ARIMA
-                    print(f"WARNING Insufficient data for {region} ARIMA model")
-                    continue
-                
-                # Auto ARIMA parameter selection (simple approach)
-                best_aic = np.inf
-                best_order = (1, 1, 1)
-                
-                for p in range(0, 3):
-                    for d in range(0, 2):
-                        for q in range(0, 3):
-                            try:
-                                model = ARIMA(train_series, order=(p, d, q))
-                                fitted_model = model.fit()
-                                if fitted_model.aic < best_aic:
-                                    best_aic = fitted_model.aic
-                                    best_order = (p, d, q)
-                            except:
-                                continue
-                
-                # Train final model with best parameters
-                final_model = ARIMA(train_series, order=best_order)
-                fitted_arima = final_model.fit()
-                
-                # Validate on validation set
-                forecast = fitted_arima.forecast(steps=len(validation_series))
-                mae = mean_absolute_error(validation_series, forecast)
-                rmse = np.sqrt(mean_squared_error(validation_series, forecast))
-                mape = mean_absolute_percentage_error(validation_series, forecast)
-                
-                arima_models[region] = fitted_arima
-                arima_performance[region] = {
-                    'order': best_order,
-                    'aic': best_aic,
-                    'validation_mae': mae,
-                    'validation_rmse': rmse,
-                    'validation_mape': mape
-                }
-                
-                print(f"TRAINED {region} ARIMA({best_order[0]},{best_order[1]},{best_order[2]}) - MAE: {mae:.3f}")
-                
-            except (ValueError, np.linalg.LinAlgError) as e:
-                print(f"ERROR ARIMA training failed for {region} - numerical issue: {e}")
-            except ImportError as e:
-                print(f"ERROR ARIMA training failed for {region} - missing dependency: {e}")
-            except Exception as e:
-                print(f"ERROR ARIMA training failed for {region} - unexpected issue: {e}")
-        
-        self.trained_models['arima'] = arima_models
-        self.model_performance['arima'] = arima_performance
-        print(f"\nARIMA Training Complete: {len(arima_models)} models trained")
+    # ARIMA training removed - using Random Forest only
 
     # LSTM methods removed - not in top 3 performers (avg MAE: much higher than top 3)
 
-    def train_ensemble_models(self):
-        """Train Random Forest and Gradient Boosting models"""
-        print("\nTraining Ensemble Models...")
+    def train_random_forest_models(self):
+        """Train Random Forest models for each target region"""
+        print("\nTraining Random Forest Models...")
         
         rf_models = {}
-        gb_models = {}
         rf_performance = {}
-        gb_performance = {}
         
         for target_col in self.target_columns:
             region = self.extract_region_from_column(target_col)
-            print(f"\nTraining ensemble models for {region}...")
+            print(f"\nTraining Random Forest for {region}...")
             
             try:
                 # Prepare data
@@ -311,42 +219,55 @@ class UnemploymentModelTrainer:
                 X_val, y_val, _ = self.prepare_features(self.validation_data, target_col)
                 
                 if y_train.isna().sum() > len(y_train) * 0.95:  # Skip if >95% missing
-                    print(f"WARNING Too much missing data for {region} ensemble models")
+                    print(f"WARNING Too much missing data for {region} Random Forest model")
                     continue
                 
-                # Handle missing data
+                # Handle missing data - fill both training and validation data
                 y_train_filled = y_train.ffill().bfill().fillna(y_train.mean())
                 X_train_filled = X_train.ffill().bfill().fillna(X_train.mean())
                 
-                # Random Forest
-                rf = RandomForestRegressor(
-                    n_estimators=100,
-                    max_depth=10,
-                    random_state=42,
-                    n_jobs=-1
-                )
-                rf.fit(X_train_filled, y_train_filled)
+                # Also fill validation data to prevent NaN issues in evaluation
+                y_val_filled = y_val.ffill().bfill().fillna(y_train.mean())  # Use training mean if val is all NaN
+                X_val_filled = X_val.ffill().bfill().fillna(X_train.mean())
                 
-                rf_pred = rf.predict(X_val.ffill().bfill().fillna(X_train.mean()))
-                rf_mae = mean_absolute_error(y_val, rf_pred)
-                rf_rmse = np.sqrt(mean_squared_error(y_val, rf_pred))
+                # Check if we still have valid data after filling
+                if y_train_filled.isna().sum() > 0 or X_train_filled.isna().sum().sum() > 0:
+                    print(f"WARNING Persistent NaN values in training data for {region}, attempting backup filling")
+                    # Backup: use median and zero-fill
+                    y_train_filled = y_train_filled.fillna(y_train.median()).fillna(0)
+                    X_train_filled = X_train_filled.fillna(X_train_filled.median()).fillna(0)
+                    y_val_filled = y_val_filled.fillna(y_train.median()).fillna(0)
+                    X_val_filled = X_val_filled.fillna(X_train_filled.median()).fillna(0)
                 
-                # Gradient Boosting
-                gb = GradientBoostingRegressor(
-                    n_estimators=100,
-                    max_depth=6,
-                    learning_rate=0.1,
-                    random_state=42
-                )
-                gb.fit(X_train_filled, y_train_filled)
+                # Ensemble of Random Forest models for better variation
+                rf_ensemble = []
+                rf_predictions = []
                 
-                gb_pred = gb.predict(X_val.ffill().bfill().fillna(X_train.mean()))
-                gb_mae = mean_absolute_error(y_val, gb_pred)
-                gb_rmse = np.sqrt(mean_squared_error(y_val, gb_pred))
+                for seed in [None, 42, 123, 456]:  # Multiple models with different seeds
+                    rf = RandomForestRegressor(
+                        n_estimators=200,           # More trees for better predictions
+                        max_depth=15,               # Deeper trees for complex patterns
+                        min_samples_split=5,        # Prevent overfitting
+                        min_samples_leaf=2,         # More variation in predictions
+                        random_state=seed,          # Vary randomness
+                        bootstrap=True,             # Enable bootstrap sampling
+                        max_features='sqrt',        # Add feature randomness
+                        n_jobs=-1
+                    )
+                    rf.fit(X_train_filled, y_train_filled)
+                    rf_ensemble.append(rf)
+                    
+                    # Get individual predictions using filled validation data
+                    rf_pred_single = rf.predict(X_val_filled)
+                    rf_predictions.append(rf_pred_single)
                 
-                # Store models and performance
-                rf_models[region] = rf
-                gb_models[region] = gb
+                # Average ensemble predictions
+                rf_pred = np.mean(rf_predictions, axis=0)
+                rf_mae = mean_absolute_error(y_val_filled, rf_pred)
+                rf_rmse = np.sqrt(mean_squared_error(y_val_filled, rf_pred))
+                
+                # Store ensemble models and performance
+                rf_models[region] = rf_ensemble
                 
                 rf_performance[region] = {
                     'validation_mae': rf_mae,
@@ -354,98 +275,29 @@ class UnemploymentModelTrainer:
                     'feature_count': len(feature_cols)
                 }
                 
-                gb_performance[region] = {
-                    'validation_mae': gb_mae,
-                    'validation_rmse': gb_rmse,
-                    'feature_count': len(feature_cols)
-                }
-                
                 # Feature importance
                 self.feature_importance[f"{region}_rf"] = dict(zip(feature_cols, rf.feature_importances_))
-                self.feature_importance[f"{region}_gb"] = dict(zip(feature_cols, gb.feature_importances_))
                 
-                print(f"TRAINED {region} RF MAE: {rf_mae:.3f}, GB MAE: {gb_mae:.3f}")
+                print(f"TRAINED {region} RF MAE: {rf_mae:.3f}")
                 
             except ValueError as e:
-                print(f"ERROR Ensemble training failed for {region} - data issue: {e}")
+                print(f"ERROR Random Forest training failed for {region} - data issue: {e}")
             except Exception as e:
-                print(f"ERROR Ensemble training failed for {region} - unexpected issue: {e}")
+                print(f"ERROR Random Forest training failed for {region} - unexpected issue: {e}")
         
         self.trained_models['random_forest'] = rf_models
-        self.trained_models['gradient_boosting'] = gb_models
         self.model_performance['random_forest'] = rf_performance
-        self.model_performance['gradient_boosting'] = gb_performance
         
-        print(f"\nEnsemble Training Complete: {len(rf_models)} RF, {len(gb_models)} GB models")
+        print(f"\nRandom Forest Training Complete: {len(rf_models)} models trained")
 
-    def train_gradient_boosting_only(self):
-        """Train ONLY Gradient Boosting models - simplified approach"""
-        print("\nTraining ONLY Gradient Boosting Models...")
-        
-        gb_models = {}
-        gb_performance = {}
-        
-        for target_col in self.target_columns:
-            region = self.extract_region_from_column(target_col)
-            print(f"\nTraining Gradient Boosting for {region}...")
-            
-            try:
-                # Prepare data with simplified feature set
-                X_train, y_train, feature_cols = self.prepare_features(self.train_data, target_col)
-                X_val, y_val, _ = self.prepare_features(self.validation_data, target_col)
-                
-                if y_train.isna().sum() > len(y_train) * 0.95:
-                    print(f"WARNING Too much missing data for {region}")
-                    continue
-                
-                # Handle missing data
-                y_train_filled = y_train.ffill().bfill().fillna(y_train.mean())
-                X_train_filled = X_train.ffill().bfill().fillna(X_train.mean())
-                X_val_filled = X_val.ffill().bfill().fillna(X_train.mean())
-                
-                # Train Gradient Boosting with optimized parameters
-                gb = GradientBoostingRegressor(
-                    n_estimators=100,
-                    max_depth=6,
-                    learning_rate=0.1,
-                    random_state=42
-                )
-                gb.fit(X_train_filled, y_train_filled)
-                
-                # Validate
-                gb_pred = gb.predict(X_val_filled)
-                gb_mae = mean_absolute_error(y_val, gb_pred)
-                gb_rmse = np.sqrt(mean_squared_error(y_val, gb_pred))
-                
-                # Store models and performance
-                gb_models[region] = gb
-                gb_performance[region] = {
-                    'validation_mae': gb_mae,
-                    'validation_rmse': gb_rmse,
-                    'feature_count': len(feature_cols)
-                }
-                
-                # Feature importance
-                self.feature_importance[f"{region}_gb"] = dict(zip(feature_cols, gb.feature_importances_))
-                
-                print(f"TRAINED {region} Gradient Boosting MAE: {gb_mae:.3f}")
-                
-            except ValueError as e:
-                print(f"ERROR GB training failed for {region} - data issue: {e}")
-            except Exception as e:
-                print(f"ERROR GB training failed for {region} - unexpected issue: {e}")
-        
-        self.trained_models['gradient_boosting'] = gb_models
-        self.model_performance['gradient_boosting'] = gb_performance
-        
-        print(f"\nGradient Boosting Training Complete: {len(gb_models)} models trained")
+    # Gradient Boosting training removed - using Random Forest only
 
     # Linear regression methods removed - not in top 3 performers
     # (Linear, Ridge, Lasso, ElasticNet, Polynomial all perform worse than RF/GB/ARIMA)
 
     def evaluate_models(self):
-        """Evaluate all models on test set"""
-        print("\nEvaluating Models on Test Set...")
+        """Evaluate Random Forest models on test set"""
+        print("\nEvaluating Random Forest Models on Test Set...")
         
         test_performance = {}
         
@@ -461,36 +313,28 @@ class UnemploymentModelTrainer:
                     print(f"WARNING Insufficient test data for {region}")
                     continue
                 
-                # Test ARIMA
-                if region in self.trained_models.get('arima', {}):
-                    arima_model = self.trained_models['arima'][region]
-                    test_forecast = arima_model.forecast(steps=len(y_test))
-                    test_performance[region]['arima'] = {
-                        'mae': mean_absolute_error(y_test, test_forecast),
-                        'rmse': np.sqrt(mean_squared_error(y_test, test_forecast))
-                    }
-                
                 # Test Random Forest
                 if region in self.trained_models.get('random_forest', {}):
                     rf_model = self.trained_models['random_forest'][region]
-                    rf_pred = rf_model.predict(X_test)
+                    
+                    # Handle ensemble model (list) or single model
+                    if isinstance(rf_model, list):  # Ensemble model
+                        # Get predictions from each model in ensemble
+                        ensemble_predictions = []
+                        for individual_model in rf_model:
+                            pred = individual_model.predict(X_test)
+                            ensemble_predictions.append(pred)
+                        # Average ensemble predictions
+                        rf_pred = np.mean(ensemble_predictions, axis=0)
+                    else:  # Single model
+                        rf_pred = rf_model.predict(X_test)
+                    
                     test_performance[region]['random_forest'] = {
                         'mae': mean_absolute_error(y_test, rf_pred),
                         'rmse': np.sqrt(mean_squared_error(y_test, rf_pred))
                     }
                 
-                # Test Gradient Boosting
-                if region in self.trained_models.get('gradient_boosting', {}):
-                    gb_model = self.trained_models['gradient_boosting'][region]
-                    gb_pred = gb_model.predict(X_test)
-                    test_performance[region]['gradient_boosting'] = {
-                        'mae': mean_absolute_error(y_test, gb_pred),
-                        'rmse': np.sqrt(mean_squared_error(y_test, gb_pred))
-                    }
-                
-                # LSTM testing removed - not in top 3 performers
-                
-                print(f"EVALUATED {region} test evaluation complete")
+                print(f"EVALUATED {region} Random Forest test evaluation complete")
                 
             except KeyError as e:
                 print(f"ERROR Test evaluation failed for {region} - missing data/model: {e}")
@@ -500,47 +344,47 @@ class UnemploymentModelTrainer:
         self.model_performance['test_results'] = test_performance
         return test_performance
 
-    def save_best_models_only(self):
-        """OPTIMIZED: Save only the best performing model per region with compression"""
-        print("\nSaving Best Models Only (Optimized)...")
-        best_models = {}
+    def save_random_forest_models(self):
+        """Save Random Forest models with compression"""
+        print("\nSaving Random Forest Models...")
+        saved_models = {}
         
-        # Find best model for each region
+        # Save Random Forest models for each region
         for region in self.target_columns:
             region_name = self.extract_region_from_column(region)
-            best_model = None
-            best_performance = float('inf')
-            best_algorithm = None
             
-            # Compare performance across top 3 algorithms for this region (ordered by avg performance)
-            for model_type in ['random_forest', 'gradient_boosting', 'arima']:
-                if (model_type in self.model_performance and 
-                    region in self.model_performance[model_type]):
-                    
-                    # Handle different performance metric keys
-                    perf_data = self.model_performance[model_type][region]
-                    mae = perf_data.get('mae') or perf_data.get('validation_mae') or float('inf')
-                    if mae < best_performance:
-                        best_performance = mae
-                        best_algorithm = model_type
-                        if (model_type in self.trained_models and 
-                            region in self.trained_models[model_type]):
-                            best_model = self.trained_models[model_type][region]
-            
-            # Save only the best model with compression
-            if best_model is not None:
-                model_file = self.models_dir / f"{best_algorithm}_{region_name.lower().replace(' ', '_').replace('(', '').replace(')', '').replace(',', '').replace("'", '')}.joblib"
-                joblib.dump(best_model, model_file, compress=3)  # Compression level 3
-                best_models[region] = {
-                    'best_model': best_algorithm,
-                    'validation_mae': best_performance
+            # Save Random Forest model if available
+            if (region_name in self.trained_models.get('random_forest', {})):
+                model = self.trained_models['random_forest'][region_name]
+                performance = self.model_performance['random_forest'][region_name]['validation_mae']
+                
+                model_file = self.models_dir / f"random_forest_{region_name.lower().replace(' ', '_').replace('(', '').replace(')', '').replace(',', '').replace("'", '')}.joblib"
+                joblib.dump(model, model_file, compress=3)  # Compression level 3
+                saved_models[region] = {
+                    'model': 'random_forest',
+                    'validation_mae': performance
                 }
-                print(f"SAVED BEST: {best_algorithm} for {region_name} (MAE: {best_performance:.4f})")
+                print(f"SAVED: Random Forest for {region_name} (MAE: {performance:.4f})")
         
-        # Update training summary with best models only
-        self.best_models_summary = best_models
+        # Update training summary with saved models
+        self.saved_models_summary = saved_models
         
-        # Save performance metrics as JSON (for backward compatibility)
+        # Save feature columns for each target for forecasting
+        feature_columns_data = {}
+        for target_col in self.target_columns:
+            region_name = self.extract_region_from_column(target_col)
+            if region_name in self.trained_models.get('random_forest', {}):
+                # Get features from training data preparation
+                X_train, y_train, feature_cols = self.prepare_features(self.train_data, target_col)
+                feature_columns_data[target_col] = feature_cols
+        
+        # Save feature columns to file
+        feature_file = self.models_dir / "feature_columns.json"
+        with open(feature_file, 'w') as f:
+            json.dump(feature_columns_data, f, indent=2)
+        print(f"SAVED: Feature columns for {len(feature_columns_data)} targets")
+        
+        # Save performance metrics as JSON
         performance_file = self.models_dir / "model_evaluation_report.json"
         with open(performance_file, 'w') as f:
             json.dump(self.model_performance, f, indent=2, default=str)
@@ -554,47 +398,40 @@ class UnemploymentModelTrainer:
             print(f"SAVED CSV performance report: {csv_file}")
             print(f"CSV contains {len(csv_df)} rows for Power BI import")
             
-            # Create separate CSV files for each algorithm to reduce file size
+            # Create CSV file for Random Forest only
             output_dir = self.models_dir / "evaluation_csvs"
             output_dir.mkdir(exist_ok=True)
             
-            for algorithm in ['arima', 'random_forest', 'gradient_boosting']:
-                if algorithm in self.model_performance:
-                    algo_df = csv_df[csv_df['Algorithm'] == algorithm].copy()
-                    algo_file = output_dir / f'{algorithm}_evaluation.csv'
-                    algo_df.to_csv(algo_file, index=False)
-                    print(f"SAVED {algorithm} CSV: {algo_file} ({len(algo_df)} rows)")
+            if 'random_forest' in self.model_performance:
+                rf_df = csv_df[csv_df['Algorithm'] == 'random_forest'].copy()
+                rf_file = output_dir / 'random_forest_evaluation.csv'
+                rf_df.to_csv(rf_file, index=False)
+                print(f"SAVED Random Forest CSV: {rf_file} ({len(rf_df)} rows)")
                     
         except Exception as e:
             print(f"WARNING: Could not create CSV files: {e}")
             print("JSON file saved successfully, CSV generation failed")
         
-        # Save feature importance (only for tree-based models)
+        # Save feature importance for Random Forest models
         if hasattr(self, 'feature_importance') and self.feature_importance:
             importance_file = self.models_dir / "feature_importance.json"
             with open(importance_file, 'w') as f:
                 json.dump(self.feature_importance, f, indent=2, default=str)
             print(f"SAVED feature importance: {importance_file}")
         
-        print(f"STORAGE OPTIMIZED: Kept {len(best_models)} best models instead of {sum(len(models) for models in self.trained_models.values()) if self.trained_models else 0}")
+        print(f"SAVED: {len(saved_models)} Random Forest models with compression")
 
     def generate_summary_report(self):
-        """OPTIMIZED: Generate executive summary using best models only"""
-        print("\nGenerating Optimized Summary Report...")
+        """Generate executive summary for Random Forest models"""
+        print("\nGenerating Random Forest Summary Report...")
         
         summary = {
             "training_date": datetime.now().isoformat(),
             "target_regions": self.target_regions,
-            "models_trained": ['random_forest', 'gradient_boosting', 'arima'],
-            "regional_distribution": {
-                "random_forest_wins": "43.3% of regions (65/150)",
-                "gradient_boosting_wins": "35.3% of regions (53/150)", 
-                "arima_wins": "21.3% of regions (32/150)"
-            },
-            "performance_ranking": {
-                "1st_avg_mae": "Random Forest (1.0014)",
-                "2nd_avg_mae": "Gradient Boosting (1.1315)", 
-                "3rd_avg_mae": "ARIMA (1.2309)"
+            "models_trained": ['random_forest'],
+            "model_info": {
+                "algorithm": "Random Forest Regressor",
+                "all_regions": "Random Forest used for all regions"
             },
             "dataset_info": {
                 "train_records": len(self.train_data),
@@ -602,38 +439,31 @@ class UnemploymentModelTrainer:
                 "test_records": len(self.test_data),
                 "total_features": self.feature_summary.get('total_features', len(self.train_data.columns) - 1)
             },
-            "best_models_by_region": {}
+            "models_by_region": {}
         }
         
-        # Use the best models we already determined during save_best_models_only
-        if hasattr(self, 'best_models_summary'):
-            summary["best_models_by_region"] = self.best_models_summary
+        # Use saved Random Forest models summary
+        if hasattr(self, 'saved_models_summary'):
+            summary["models_by_region"] = self.saved_models_summary
         else:
-            # Fallback: Find best model for each region based on validation MAE  
+            # Fallback: Get Random Forest model performance for each region
             for target_col in self.target_columns:
                 region = self.extract_region_from_column(target_col)
-                best_mae = np.inf
-                best_model = None
                 
-                for model_type in ['random_forest', 'gradient_boosting', 'arima']:
-                    if (model_type in self.model_performance and 
-                        region in self.model_performance[model_type]):
-                        mae = self.model_performance[model_type][region].get('mae', np.inf)
-                        if mae < best_mae:
-                            best_mae = mae
-                            best_model = model_type
-                
-                summary["best_models_by_region"][target_col] = {
-                    "best_model": best_model,
-                    "validation_mae": best_mae if best_mae != np.inf else None
-                }
+                if ('random_forest' in self.model_performance and 
+                    region in self.model_performance['random_forest']):
+                    mae = self.model_performance['random_forest'][region].get('validation_mae', None)
+                    summary["models_by_region"][target_col] = {
+                        "model": "random_forest",
+                        "validation_mae": mae
+                    }
         
         # Save summary
         summary_file = self.models_dir / "training_summary.json"
         with open(summary_file, 'w') as f:
             json.dump(summary, f, indent=2, default=str)
         
-        print(f"SAVED Optimized Training Summary: {summary_file}")
+        print(f"SAVED Random Forest Training Summary: {summary_file}")
         return summary
 
     def convert_performance_to_csv(self, performance_data):
@@ -643,9 +473,9 @@ class UnemploymentModelTrainer:
         """
         rows = []
         
-        # Process each algorithm type
+        # Process Random Forest algorithm
         for algorithm in performance_data:
-            if algorithm in ['arima', 'random_forest', 'gradient_boosting']:
+            if algorithm in ['random_forest']:
                 algorithm_data = performance_data[algorithm]
                 
                 # Process each demographic within the algorithm
@@ -656,27 +486,15 @@ class UnemploymentModelTrainer:
                         'Series_Name': demographic.replace('_', ' ').title()
                     }
                     
-                    # Handle different metric types based on algorithm
-                    if algorithm == 'arima':
-                        # ARIMA has special fields
-                        row['Order_P'] = metrics.get('order', [None, None, None])[0] if 'order' in metrics else None
-                        row['Order_D'] = metrics.get('order', [None, None, None])[1] if 'order' in metrics else None
-                        row['Order_Q'] = metrics.get('order', [None, None, None])[2] if 'order' in metrics else None
-                        row['AIC'] = metrics.get('aic', None)
-                        row['Validation_MAE'] = metrics.get('validation_mae', None)
-                        row['Validation_RMSE'] = metrics.get('validation_rmse', None)
-                        row['Validation_MAPE'] = metrics.get('validation_mape', None)
-                        row['Feature_Count'] = None  # ARIMA doesn't use features
-                    else:
-                        # Random Forest and Gradient Boosting
-                        row['Order_P'] = None
-                        row['Order_D'] = None
-                        row['Order_Q'] = None
-                        row['AIC'] = None
-                        row['Validation_MAE'] = metrics.get('validation_mae', None)
-                        row['Validation_RMSE'] = metrics.get('validation_rmse', None)
-                        row['Validation_MAPE'] = None  # ML models might not have MAPE
-                        row['Feature_Count'] = metrics.get('feature_count', None)
+                    # Random Forest metrics
+                    row['Order_P'] = None
+                    row['Order_D'] = None
+                    row['Order_Q'] = None
+                    row['AIC'] = None
+                    row['Validation_MAE'] = metrics.get('validation_mae', None)
+                    row['Validation_RMSE'] = metrics.get('validation_rmse', None)
+                    row['Validation_MAPE'] = None  # Random Forest doesn't have MAPE
+                    row['Feature_Count'] = metrics.get('feature_count', None)
                     
                     rows.append(row)
             
@@ -720,28 +538,27 @@ class UnemploymentModelTrainer:
     # 2. Generated static forecasts by repeating single predictions  
     # 3. Did not implement proper multi-step forecasting methodology
 
-    def run_optimized_training_pipeline(self):
-        """OPTIMIZED: Execute parallel model training pipeline with best-model selection"""
-        print("Starting OPTIMIZED Model Training Pipeline...")
-        print("OPTIMIZATIONS: Parallel processing + Best model selection + Compressed storage")
+    def run_random_forest_training_pipeline(self):
+        """Execute Random Forest model training pipeline"""
+        print("Starting Random Forest Model Training Pipeline...")
+        print("MODEL: Random Forest Regressor for all regions")
         print("=" * 70)
         
-        # Step 1: Load Data ONCE (not per model)
+        # Step 1: Load Data
         if not self.load_datasets():
             print("ERROR Failed to load datasets. Exiting.")
             return False
         
         print(f"DATA LOADED: Training on {len(self.target_columns)} regions with {len(self.train_data)} samples")
         
-        # Step 2: Parallel Model Training (ARIMA + RF + GB simultaneously)
-        print("\nSTEP 2: TOP 3 MODEL TRAINING")
-        print("Training Random Forest, Gradient Boosting, and ARIMA (all needed for optimal regional coverage)...")
+        # Step 2: Random Forest Model Training
+        print("\nSTEP 2: RANDOM FOREST TRAINING")
+        print("Training Random Forest models for all regions...")
         
         start_time = datetime.now()
         
-        # Use original sequential training but optimized data usage
-        self.train_arima_models()
-        self.train_ensemble_models()
+        # Train Random Forest models
+        self.train_random_forest_models()
         
         end_time = datetime.now()
         training_duration = (end_time - start_time).total_seconds()
@@ -752,41 +569,38 @@ class UnemploymentModelTrainer:
         print("\nSTEP 3: MODEL EVALUATION")
         self.evaluate_models()
         
-        # Step 4: Save ONLY Best Models (60% storage reduction)
-        print("\nSTEP 4: OPTIMIZED MODEL STORAGE")
-        self.save_best_models_only()
+        # Step 4: Save Random Forest Models
+        print("\nSTEP 4: MODEL STORAGE")
+        self.save_random_forest_models()
         
-        # Step 5: Generate Optimized Summary
+        # Step 5: Generate Summary
         summary = self.generate_summary_report()
         
-        print(f"\nOPTIMIZATION SUMMARY:")
+        print(f"\nTRAINING SUMMARY:")
         print(f"- Training Time: {training_duration:.1f}s")
-        print(f"- Storage: Only best models saved (60% reduction)")
+        print(f"- Algorithm: Random Forest Regressor")
         print(f"- Compression: Level 3 applied to all model files")
-        print(f"- Models: {len(self.target_columns)} regions optimized")
-        print(f"- Code Cleanup: Removed LSTM & Linear regression (underperforming models)")
-        print(f"- Regional Optimization: All 3 models needed - RF wins 43%, GB wins 35%, ARIMA wins 21%")
+        print(f"- Models: {len(self.target_columns)} regions trained")
         
-        # Step 8: Forecasting moved to separate script
+        # Forecasting moved to separate script
         print("\nNOTE: For forecasting, use: python unemployment_forecaster_fixed.py")
         print("(Forecasting removed from trainer to prevent data leakage)")
         
         print("\n" + "=" * 60)
-        print("MODEL TRAINING PIPELINE COMPLETE!")
+        print("RANDOM FOREST TRAINING PIPELINE COMPLETE!")
         print("=" * 60)
         
         # Display summary
         print("\nTRAINING SUMMARY:")
         print(f"- Regions: {', '.join(self.target_regions)}")
-        print(f"- Top 3 Models: {', '.join(summary['models_trained'])} (all needed for optimal regional coverage)")
+        print(f"- Model: {', '.join(summary['models_trained'])}")
         print(f"- Training Records: {summary['dataset_info']['train_records']}")
-        print(f"- Regional Distribution: {summary['regional_distribution']}")
-        print(f"- Performance Ranking: {summary['performance_ranking']}")
+        print(f"- Algorithm: {summary['model_info']['algorithm']}")
         
-        print("\nBEST MODELS BY REGION:")
-        for region, info in summary["best_models_by_region"].items():
-            if info['best_model']:
-                print(f"- {region}: {info['best_model']} (MAE: {info['validation_mae']:.3f})")
+        print("\nMODELS BY REGION:")
+        for region, info in summary["models_by_region"].items():
+            if info.get('model'):
+                print(f"- {region}: {info['model']} (MAE: {info['validation_mae']:.3f})")
         
         print(f"\nAll results saved to: {self.models_dir}")
         print("Ready for dashboard integration and MBIE presentation!")
@@ -795,24 +609,24 @@ class UnemploymentModelTrainer:
 
 
 def main():
-    """Main execution function - OPTIMIZED VERSION"""
-    print("NZ UNEMPLOYMENT FORECASTING MODEL TRAINER - OPTIMIZED")
-    print("Team JRKI - Production v2.1 OPTIMIZED")
-    print("FEATURES: Top 3 regional winners + Best-model selection + Compressed storage")
+    """Main execution function - Random Forest Version"""
+    print("NZ UNEMPLOYMENT FORECASTING MODEL TRAINER - RANDOM FOREST")
+    print("Team JRKI - Production v2.2 Random Forest")
+    print("ALGORITHM: Random Forest Regressor for all regions")
     print("=" * 70)
     
     # Initialize trainer
     trainer = UnemploymentModelTrainer()
     
-    # Run OPTIMIZED pipeline
-    success = trainer.run_optimized_training_pipeline()
+    # Run Random Forest pipeline
+    success = trainer.run_random_forest_training_pipeline()
     
     if success:
-        print("\n[SUCCESS] OPTIMIZED model training completed!")
-        print("BENEFITS: 60% storage reduction, faster execution, best models only")
+        print("\n[SUCCESS] Random Forest model training completed!")
+        print("BENEFITS: Simplified architecture, consistent algorithm across regions")
         print("Ready for forecasting dashboard and client presentation.")
     else:
-        print("\n[ERROR] Optimized model training encountered issues.")
+        print("\n[ERROR] Random Forest model training encountered issues.")
         print("Check data files and try again.")
 
 

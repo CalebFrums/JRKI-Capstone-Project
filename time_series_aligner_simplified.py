@@ -482,6 +482,24 @@ class SimpleTimeSeriesAligner:
                 # Backward fill for start-of-series gaps
                 df[col] = df[col].bfill(limit=2)
                 
+                # Final safety net for any remaining NaN values
+                remaining_missing = df[col].isna().sum()
+                if remaining_missing > 0:
+                    # Calculate safe fallback value
+                    valid_values = df[col].dropna()
+                    if len(valid_values) > 0:
+                        fallback_value = valid_values.median()
+                        if pd.isna(fallback_value):
+                            fallback_value = valid_values.mean()
+                        if pd.isna(fallback_value):
+                            # Last resort defaults
+                            fallback_value = 5.0 if 'unemployment_rate' in col else 0.0
+                    else:
+                        fallback_value = 5.0 if 'unemployment_rate' in col else 0.0
+                    
+                    df[col] = df[col].fillna(fallback_value)
+                    print(f"   SAFETY FILL {col}: Applied fallback value {fallback_value} to {remaining_missing} values")
+                
                 final_missing = df[col].isna().sum()
                 if original_missing > final_missing:
                     filled = original_missing - final_missing
@@ -756,9 +774,15 @@ class SimpleTimeSeriesAligner:
                         rolling_median = values.rolling(window=8, center=True, min_periods=2).median()
                         clean_values[remaining_na] = rolling_median[remaining_na]
                     
-                    # Final fallback to series median
+                    # Final fallback to series median with safety check
                     if clean_values.isna().sum() > 0:
-                        clean_values = clean_values.fillna(values.median())
+                        series_median = values.median()
+                        if pd.isna(series_median):
+                            # If median is also NaN, use reasonable unemployment default
+                            fallback_value = 5.0 if 'unemployment_rate' in col else 0.0
+                        else:
+                            fallback_value = series_median
+                        clean_values = clean_values.fillna(fallback_value)
                     
                     df[col] = clean_values
                     outliers_cleaned += outliers.sum()
