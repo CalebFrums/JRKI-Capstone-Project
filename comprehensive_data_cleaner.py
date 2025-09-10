@@ -12,6 +12,9 @@ from pathlib import Path
 import json
 import re
 import warnings
+from scipy import stats
+from sklearn.ensemble import IsolationForest
+from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings('ignore')
 
 class GovernmentDataCleaner:
@@ -45,6 +48,198 @@ class GovernmentDataCleaner:
         """Simple logging"""
         log_entry = {"action": action, "message": message, "level": level}
         self.audit_log.append(log_entry)
+    
+    def detect_outliers_iqr(self, series, multiplier=2.5):
+        """Enhanced IQR outlier detection with configurable multiplier"""
+        Q1 = series.quantile(0.25)
+        Q3 = series.quantile(0.75)
+        IQR = Q3 - Q1
+        
+        lower_bound = Q1 - multiplier * IQR
+        upper_bound = Q3 + multiplier * IQR
+        
+        outliers = (series < lower_bound) | (series > upper_bound)
+        return outliers, lower_bound, upper_bound
+    
+    def detect_outliers_zscore(self, series, threshold=3.0, use_modified=True):
+        """Z-score outlier detection with modified Z-score option"""
+        if use_modified:
+            # Modified Z-score using median (more robust)
+            median = series.median()
+            mad = (series - median).abs().median()
+            if mad == 0:
+                return pd.Series([False] * len(series), index=series.index), 0, 0
+            modified_z_scores = 0.6745 * (series - median) / mad
+            outliers = modified_z_scores.abs() > threshold
+            return outliers, -threshold, threshold
+        else:
+            # Standard Z-score
+            z_scores = stats.zscore(series, nan_policy='omit')
+            outliers = np.abs(z_scores) > threshold
+            return pd.Series(outliers, index=series.index), -threshold, threshold
+    
+    def detect_outliers_isolation_forest(self, df, contamination=0.1):
+        """Multivariate outlier detection using Isolation Forest"""
+        try:
+            # Only use numeric columns
+            numeric_cols = df.select_dtypes(include=[np.number]).columns
+            if len(numeric_cols) == 0:
+                return pd.Series([False] * len(df), index=df.index)
+            
+            # Prepare data
+            data = df[numeric_cols].fillna(df[numeric_cols].median())
+            
+            # Scale data for better performance
+            scaler = StandardScaler()
+            scaled_data = scaler.fit_transform(data)
+            
+            # Apply Isolation Forest
+            iso_forest = IsolationForest(contamination=contamination, random_state=42)
+            outlier_labels = iso_forest.fit_predict(scaled_data)
+            
+            # Convert to boolean series (True for outliers)
+            outliers = pd.Series(outlier_labels == -1, index=df.index)
+            return outliers
+            
+        except Exception as e:
+            print(f"   Warning: Isolation Forest failed: {e}")
+            return pd.Series([False] * len(df), index=df.index)
+    
+    def detect_time_series_outliers(self, series, window=8, seasonal_adjust=True):
+        """Time-series specific outlier detection using rolling statistics"""
+        try:
+            # Calculate rolling statistics
+            rolling_mean = series.rolling(window=window, center=True).mean()
+            rolling_std = series.rolling(window=window, center=True).std()
+            
+            # Seasonal adjustment if requested
+            if seasonal_adjust and len(series) >= 24:  # Need at least 2 years for seasonality
+                try:
+                    from statsmodels.tsa.seasonal import seasonal_decompose
+                    decomposition = seasonal_decompose(series.dropna(), model='additive', period=4)
+                    detrended = series - decomposition.trend
+                    rolling_mean = detrended.rolling(window=window, center=True).mean()
+                    rolling_std = detrended.rolling(window=window, center=True).std()
+                except:
+                    pass  # Fall back to non-seasonal method
+            
+            # Identify outliers using rolling statistics
+            outliers = np.abs(series - rolling_mean) > (2.5 * rolling_std)
+            outliers = outliers.fillna(False)
+            
+            return outliers
+            
+        except Exception as e:
+            print(f"   Warning: Time series outlier detection failed: {e}")
+            return pd.Series([False] * len(series), index=series.index)
+    
+    def advanced_outlier_detection(self, df, column, data_type="unemployment_rates"):
+        """2024 best practice: Multi-method outlier detection with consensus"""
+        try:
+            # Get configuration parameters
+            outlier_config = self.config.get('data_quality', {}).get('outlier_detection', {})
+            if not outlier_config.get('enabled', True):
+                return pd.Series([False] * len(df), index=df.index)
+            
+            type_config = outlier_config.get(data_type, {})
+            iqr_mult = type_config.get('iqr_multiplier', 2.5)
+            z_threshold = type_config.get('zscore_threshold', 3.0)
+            iso_contamination = type_config.get('isolation_contamination', 0.1)
+            
+            series = df[column].copy()
+            series = pd.to_numeric(series, errors='coerce')
+            
+            if series.dropna().empty or len(series.dropna()) < 10:
+                return pd.Series([False] * len(df), index=df.index)
+            
+            outlier_methods = []
+            method_names = []
+            
+            # Method 1: Enhanced IQR
+            if 'iqr' in outlier_config.get('methods', ['iqr']):
+                iqr_outliers, _, _ = self.detect_outliers_iqr(series, iqr_mult)
+                outlier_methods.append(iqr_outliers)
+                method_names.append('IQR')
+            
+            # Method 2: Modified Z-score (more robust)
+            if 'zscore' in outlier_config.get('methods', ['zscore']):
+                z_outliers, _, _ = self.detect_outliers_zscore(series, z_threshold, use_modified=True)
+                outlier_methods.append(z_outliers)
+                method_names.append('Z-score')
+            
+            # Method 3: Time series specific (if applicable)
+            ts_config = outlier_config.get('time_series_specific', {})
+            if ts_config.get('seasonal_adjustment', False) and 'date' in df.columns:
+                ts_outliers = self.detect_time_series_outliers(
+                    series, 
+                    window=ts_config.get('rolling_window', 8),
+                    seasonal_adjust=ts_config.get('seasonal_adjustment', True)
+                )
+                outlier_methods.append(ts_outliers)
+                method_names.append('Time-series')
+            
+            # Method 4: Isolation Forest (multivariate)
+            if 'isolation_forest' in outlier_config.get('methods', []) and len(df.select_dtypes(include=[np.number]).columns) > 1:
+                iso_outliers = self.detect_outliers_isolation_forest(df, iso_contamination)
+                outlier_methods.append(iso_outliers)
+                method_names.append('Isolation Forest')
+            
+            # Consensus approach: outlier if detected by majority of methods
+            if len(outlier_methods) == 0:
+                return pd.Series([False] * len(df), index=df.index)
+            
+            outlier_votes = pd.DataFrame(outlier_methods).T
+            consensus_outliers = outlier_votes.sum(axis=1) >= (len(outlier_methods) / 2)
+            
+            num_outliers = consensus_outliers.sum()
+            if num_outliers > 0:
+                methods_used = ', '.join(method_names)
+                print(f"   OUTLIERS {column}: {num_outliers} detected using {methods_used}")
+            
+            return consensus_outliers
+            
+        except Exception as e:
+            print(f"   Warning: Advanced outlier detection failed for {column}: {e}")
+            return pd.Series([False] * len(df), index=df.index)
+    
+    def treat_outliers(self, df, column, outliers, data_type="unemployment_rates"):
+        """Treat detected outliers based on configuration"""
+        try:
+            treatment_config = self.config.get('processing_rules', {}).get('outlier_treatment', {})
+            type_treatment = treatment_config.get(data_type, {})
+            method = type_treatment.get('method', 'interpolate')
+            
+            if outliers.sum() == 0:
+                return df[column]
+            
+            treated_series = df[column].copy()
+            
+            if method == 'interpolate':
+                # Replace outliers with interpolated values
+                treated_series[outliers] = np.nan
+                treated_series = treated_series.interpolate(method='linear', limit_direction='both')
+                
+                # If still NaN, use rolling median
+                if treated_series.isna().any():
+                    context_window = type_treatment.get('context_window', 8)
+                    rolling_median = df[column].rolling(window=context_window, center=True).median()
+                    treated_series = treated_series.fillna(rolling_median)
+                
+            elif method == 'cap_at_percentile':
+                percentiles = type_treatment.get('percentiles', [1, 99])
+                lower_cap = df[column].quantile(percentiles[0] / 100)
+                upper_cap = df[column].quantile(percentiles[1] / 100)
+                treated_series = treated_series.clip(lower=lower_cap, upper=upper_cap)
+                
+            elif method == 'flag_only':
+                # Just flag, don't modify
+                pass
+            
+            return treated_series
+            
+        except Exception as e:
+            print(f"   Warning: Outlier treatment failed for {column}: {e}")
+            return df[column]
         
     def detect_header_structure(self, filepath, max_rows=10):
         """Detect optimal header configuration for complex government CSVs including MEI files"""

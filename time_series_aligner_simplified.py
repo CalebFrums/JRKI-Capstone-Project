@@ -23,6 +23,14 @@ import numpy as np
 from pathlib import Path
 from datetime import datetime
 import json
+from scipy import interpolate
+try:
+    from statsmodels.tsa.seasonal import seasonal_decompose
+    from sklearn.impute import KNNImputer
+    ADVANCED_IMPUTE_AVAILABLE = True
+except ImportError:
+    ADVANCED_IMPUTE_AVAILABLE = False
+    print("Warning: Advanced imputation libraries not available")
 
 class SimpleTimeSeriesAligner:
     """
@@ -33,11 +41,24 @@ class SimpleTimeSeriesAligner:
     Optimized for New Zealand economic forecasting requirements.
     """
     
-    def __init__(self, data_dir="data_cleaned", output_dir="data_cleaned"):
+    def __init__(self, data_dir="data_cleaned", output_dir="data_cleaned", config_file="simple_config.json"):
         self.data_dir = Path(data_dir).resolve()
         self.output_dir = Path(output_dir).resolve()
         self.output_dir.mkdir(exist_ok=True)
+        
+        # Load configuration
+        self.config = self.load_config(config_file)
+        
         print(f"Time Series Aligner: {self.data_dir} -> {self.output_dir}")
+    
+    def load_config(self, config_file):
+        """Load configuration from JSON file"""
+        try:
+            with open(config_file, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Warning: Could not load config {config_file}: {e}")
+            return {}
     
     def _parse_quarterly_periods(self, period_column):
         """Parse quarterly period strings like '1989Q1' to datetime objects"""
@@ -466,45 +487,202 @@ class SimpleTimeSeriesAligner:
         
         return aligned_df
     
-    def basic_missing_data_fill(self, df):
-        """Realistic time series filling for government data with gaps"""
+    def advanced_spline_interpolation(self, series, method='cubic'):
+        """Advanced spline interpolation for economic time series"""
+        try:
+            if series.dropna().empty or len(series.dropna()) < 4:
+                return series
+            
+            # Get non-null indices and values
+            not_null = series.dropna()
+            x = np.array(not_null.index)
+            y = np.array(not_null.values)
+            
+            # Create interpolation function
+            if method == 'cubic' and len(x) >= 4:
+                f = interpolate.interp1d(x, y, kind='cubic', fill_value='extrapolate')
+            else:
+                f = interpolate.interp1d(x, y, kind='linear', fill_value='extrapolate')
+            
+            # Apply to all indices
+            interpolated = f(series.index)
+            return pd.Series(interpolated, index=series.index)
+            
+        except Exception as e:
+            print(f"   Warning: Spline interpolation failed: {e}")
+            return series.interpolate(method='linear')
+    
+    def seasonal_decompose_impute(self, series, period=4):
+        """Impute missing values using seasonal decomposition"""
+        try:
+            if not ADVANCED_IMPUTE_AVAILABLE or len(series.dropna()) < period * 2:
+                return series
+            
+            # Apply seasonal decomposition to non-null values
+            clean_series = series.dropna()
+            if len(clean_series) < period * 2:
+                return series
+            
+            decomposition = seasonal_decompose(clean_series, model='additive', period=period)
+            
+            # Reconstruct full series by extending components
+            trend_filled = decomposition.trend.reindex(series.index).interpolate(method='linear')
+            seasonal_filled = decomposition.seasonal.reindex(series.index).fillna(method='ffill').fillna(method='bfill')
+            
+            # Combine components for missing values
+            reconstructed = trend_filled + seasonal_filled
+            
+            # Fill only missing values in original series
+            result = series.copy()
+            missing_mask = series.isna()
+            result.loc[missing_mask] = reconstructed.loc[missing_mask]
+            
+            return result
+            
+        except Exception as e:
+            print(f"   Warning: Seasonal decomposition imputation failed: {e}")
+            return series
+    
+    def knn_impute_cross_sectional(self, df, n_neighbors=5):
+        """KNN imputation across similar time series"""
+        try:
+            if not ADVANCED_IMPUTE_AVAILABLE:
+                return df
+            
+            # Only apply to unemployment or economic indicator columns
+            unemployment_cols = [col for col in df.columns if 'unemployment' in col.lower()]
+            economic_cols = [col for col in df.columns if any(indicator in col.lower() 
+                           for indicator in ['cpi', 'gdp', 'lci'])]
+            
+            target_cols = unemployment_cols + economic_cols
+            if len(target_cols) < 2:
+                return df
+            
+            # Apply KNN imputation
+            imputer = KNNImputer(n_neighbors=min(n_neighbors, len(target_cols)))
+            df_imputed = df.copy()
+            
+            if target_cols:
+                imputed_values = imputer.fit_transform(df[target_cols])
+                df_imputed[target_cols] = imputed_values
+                
+                imputed_count = (df[target_cols].isna().sum().sum() - 
+                               df_imputed[target_cols].isna().sum().sum())
+                if imputed_count > 0:
+                    print(f"   KNN IMPUTE: Filled {imputed_count} values using cross-sectional relationships")
+            
+            return df_imputed
+            
+        except Exception as e:
+            print(f"   Warning: KNN imputation failed: {e}")
+            return df
+    
+    def config_driven_imputation(self, df, data_type="economic_indicators"):
+        """Advanced missing value handling using configuration rules"""
+        print(f"   Applying config-driven imputation for {data_type}...")
+        
+        # Get configuration
+        impute_config = self.config.get('processing_rules', {}).get('missing_value_handling', {})
+        type_config = impute_config.get(data_type, {})
+        
+        priority_order = impute_config.get('priority_order', [
+            'seasonal_decomposition', 'spline_interpolation', 
+            'linear_interpolation', 'forward_fill', 'cross_sectional_knn'
+        ])
+        
+        max_gap = type_config.get('max_gap_size', 4)
+        interpolation_method = type_config.get('interpolation_method', 'linear')
+        fallback_value = type_config.get('fallback_value', 0.0)
+        
+        df_result = df.copy()
+        
         for col in df.select_dtypes(include=[np.number]).columns:
-            if col != 'date':
-                original_missing = df[col].isna().sum()
+            if col == 'date':
+                continue
                 
-                # More aggressive filling for government data reality
-                # Linear interpolation for time series continuity
-                df[col] = df[col].interpolate(method='linear', limit_area='inside')
-                
-                # Forward fill for remaining gaps (more generous limit)
-                df[col] = df[col].ffill(limit=4)
-                
-                # Backward fill for start-of-series gaps
-                df[col] = df[col].bfill(limit=2)
-                
-                # Final safety net for any remaining NaN values
-                remaining_missing = df[col].isna().sum()
-                if remaining_missing > 0:
-                    # Calculate safe fallback value
-                    valid_values = df[col].dropna()
-                    if len(valid_values) > 0:
-                        fallback_value = valid_values.median()
-                        if pd.isna(fallback_value):
-                            fallback_value = valid_values.mean()
-                        if pd.isna(fallback_value):
-                            # Last resort defaults
-                            fallback_value = 5.0 if 'unemployment_rate' in col else 0.0
-                    else:
-                        fallback_value = 5.0 if 'unemployment_rate' in col else 0.0
+            original_missing = df_result[col].isna().sum()
+            if original_missing == 0:
+                continue
+            
+            series = df_result[col].copy()
+            
+            # Apply methods in priority order
+            for method in priority_order:
+                current_missing = series.isna().sum()
+                if current_missing == 0:
+                    break
                     
-                    df[col] = df[col].fillna(fallback_value)
-                    print(f"   SAFETY FILL {col}: Applied fallback value {fallback_value} to {remaining_missing} values")
+                if method == 'seasonal_decomposition' and 'unemployment' in col.lower():
+                    series = self.seasonal_decompose_impute(series)
+                    
+                elif method == 'spline_interpolation' and interpolation_method == 'spline':
+                    series = self.advanced_spline_interpolation(series, method='cubic')
+                    
+                elif method == 'linear_interpolation':
+                    series = series.interpolate(method='linear', limit=max_gap)
+                    
+                elif method == 'forward_fill':
+                    series = series.ffill(limit=max_gap//2).bfill(limit=max_gap//2)
+                    
+                elif method == 'cross_sectional_knn':
+                    # This will be applied to the whole dataframe later
+                    pass
+            
+            # Final fallback
+            if series.isna().any():
+                if 'unemployment_rate' in col:
+                    fallback = 5.0
+                elif pd.notna(series.median()):
+                    fallback = series.median()
+                else:
+                    fallback = fallback_value
                 
-                final_missing = df[col].isna().sum()
-                if original_missing > final_missing:
-                    filled = original_missing - final_missing
-                    print(f"   FILL {col}: Filled {filled} missing values")
-        return df
+                remaining = series.isna().sum()
+                series = series.fillna(fallback)
+                if remaining > 0:
+                    print(f"   FALLBACK {col}: Filled {remaining} values with {fallback}")
+            
+            df_result[col] = series
+            
+            filled = original_missing - df_result[col].isna().sum()
+            if filled > 0:
+                print(f"   IMPUTE {col}: Filled {filled}/{original_missing} missing values")
+        
+        # Apply cross-sectional KNN if requested
+        if 'cross_sectional_knn' in priority_order:
+            df_result = self.knn_impute_cross_sectional(df_result)
+        
+        return df_result
+    
+    def advanced_missing_data_fill(self, df, dataset_name=""):
+        """2024 best practice: Advanced missing value handling with multiple methods"""
+        if len(df) == 0:
+            return df
+        
+        print(f"   Advanced imputation for {dataset_name}...")
+        
+        # Determine data type for configuration
+        if 'unemployment' in dataset_name.lower() or 'hlf' in dataset_name.lower():
+            data_type = "unemployment_rates"
+        elif any(indicator in dataset_name.lower() for indicator in ['gdp', 'cpi', 'lci', 'mei', 'ect', 'qem']):
+            data_type = "economic_indicators"
+        elif 'buo' in dataset_name.lower():
+            data_type = "survey_data"
+        else:
+            data_type = "economic_indicators"
+        
+        # Apply config-driven imputation
+        df_filled = self.config_driven_imputation(df, data_type)
+        
+        # Data quality report
+        original_completeness = df.select_dtypes(include=[np.number]).notna().mean().mean()
+        final_completeness = df_filled.select_dtypes(include=[np.number]).notna().mean().mean()
+        
+        if final_completeness > original_completeness:
+            improvement = final_completeness - original_completeness
+            print(f"   QUALITY IMPROVED: {original_completeness:.1%} -> {final_completeness:.1%} (+{improvement:.1%})")
+        
+        return df_filled
     
     def create_integrated_dataset(self, datasets):
         """Simplified integration focused on client needs"""

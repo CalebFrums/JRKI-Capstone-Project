@@ -27,7 +27,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import os
 
 # ML Libraries
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
 
 # Suppress warnings for cleaner output
@@ -56,6 +56,11 @@ class UnemploymentModelTrainer:
         
         # Load target regions from config
         self.target_regions = self.config.get('regions', {}).get('unemployment_core', ['Auckland', 'Wellington', 'Canterbury'])
+        
+        # Enhanced configuration for 2024 features
+        self.data_quality_config = self.config.get('data_quality', {})
+        self.processing_rules = self.config.get('processing_rules', {})
+        self.model_config = self.config.get('forecasting', {}).get('model_selection', {})
         
         # Target columns will be detected from actual data, not hardcoded
         self.target_columns = []
@@ -193,8 +198,27 @@ class UnemploymentModelTrainer:
                 # Other columns: standard imputation
                 X[col] = X[col].ffill().fillna(0)
         
+        # CRITICAL: Clean infinity and extreme values
+        X = X.replace([np.inf, -np.inf], np.nan)
+        X = X.fillna(0)
+        
+        # Cap extreme values to prevent overflow
+        numeric_cols = X.select_dtypes(include=[np.number]).columns
+        for col in numeric_cols:
+            # Cap at 99.9th percentile to remove extreme outliers
+            upper_bound = X[col].quantile(0.999)
+            lower_bound = X[col].quantile(0.001)
+            X[col] = X[col].clip(lower=lower_bound, upper=upper_bound)
+        
         # FIXED: Handle NaN in target variable properly
         y = dataset[target_col].ffill().bfill().fillna(dataset[target_col].mean())
+        
+        # Clean target variable too
+        y = y.replace([np.inf, -np.inf], np.nan)
+        if y.isna().all():
+            y = y.fillna(5.0)  # Default unemployment rate
+        else:
+            y = y.fillna(y.mean())
         
         return X, y, feature_cols
 
@@ -218,9 +242,28 @@ class UnemploymentModelTrainer:
                 X_train, y_train, feature_cols = self.prepare_features(self.train_data, target_col)
                 X_val, y_val, _ = self.prepare_features(self.validation_data, target_col)
                 
-                if y_train.isna().sum() > len(y_train) * 0.95:  # Skip if >95% missing
-                    print(f"WARNING Too much missing data for {region} Random Forest model")
+                # Enhanced sparsity thresholds from configuration (2024 best practice)
+                sparsity_ratio = y_train.isna().sum() / len(y_train)
+                
+                # Get thresholds from config
+                sparsity_thresholds = self.model_config.get('sparsity_thresholds', {})
+                
+                # Determine data type and corresponding threshold
+                if any(keyword in target_col for keyword in ['Computer_usage', 'ICT_', 'Loss_', 'Internet_usage']):
+                    threshold = sparsity_thresholds.get('survey_data', 0.7)
+                    data_type = "survey_data"
+                elif 'unemployment_rate' in target_col:
+                    threshold = sparsity_thresholds.get('unemployment_core', 0.8)
+                    data_type = "unemployment_core"
+                else:
+                    threshold = sparsity_thresholds.get('economic_indicators', 0.9)
+                    data_type = "economic_indicators"
+                
+                if sparsity_ratio > threshold:
+                    print(f"WARNING Sparsity {sparsity_ratio:.1%} > {threshold:.0%} threshold for {region}, skipping model")
                     continue
+                
+                print(f"Sparsity check passed: {region} has {sparsity_ratio:.1%} missing data (threshold: {threshold:.0%})")
                 
                 # Handle missing data - fill both training and validation data
                 y_train_filled = y_train.ffill().bfill().fillna(y_train.mean())
@@ -239,27 +282,65 @@ class UnemploymentModelTrainer:
                     y_val_filled = y_val_filled.fillna(y_train.median()).fillna(0)
                     X_val_filled = X_val_filled.fillna(X_train_filled.median()).fillna(0)
                 
-                # Ensemble of Random Forest models for better variation
+                # Sparse-optimized ensemble (2024 best practice)
                 rf_ensemble = []
                 rf_predictions = []
                 
-                for seed in [None, 42, 123, 456]:  # Multiple models with different seeds
-                    rf = RandomForestRegressor(
-                        n_estimators=200,           # More trees for better predictions
-                        max_depth=15,               # Deeper trees for complex patterns
-                        min_samples_split=5,        # Prevent overfitting
-                        min_samples_leaf=2,         # More variation in predictions
-                        random_state=seed,          # Vary randomness
-                        bootstrap=True,             # Enable bootstrap sampling
-                        max_features='sqrt',        # Add feature randomness
-                        n_jobs=-1
+                # Model configurations from enhanced config (2024 best practice)
+                ensemble_config = self.model_config.get('ensemble_methods', {})
+                
+                rf_config = ensemble_config.get('random_forest', {})
+                et_config = ensemble_config.get('extra_trees', {})
+                gb_config = ensemble_config.get('gradient_boosting', {})
+                
+                sparse_models = [
+                    # Random Forest with config parameters
+                    RandomForestRegressor(
+                        n_estimators=rf_config.get('n_estimators', 150),
+                        max_depth=rf_config.get('max_depth', 12),
+                        min_samples_split=rf_config.get('min_samples_split', 3),
+                        min_samples_leaf=1, max_features='sqrt', random_state=42, n_jobs=-1
+                    ),
+                    # Extra Trees with config parameters
+                    ExtraTreesRegressor(
+                        n_estimators=et_config.get('n_estimators', 150),
+                        max_depth=et_config.get('max_depth', 10),
+                        min_samples_split=et_config.get('min_samples_split', 2),
+                        min_samples_leaf=1, max_features='sqrt', random_state=123, n_jobs=-1
+                    ),
+                    # Gradient Boosting with config parameters
+                    GradientBoostingRegressor(
+                        n_estimators=gb_config.get('n_estimators', 100),
+                        max_depth=gb_config.get('max_depth', 6),
+                        learning_rate=gb_config.get('learning_rate', 0.1),
+                        loss=gb_config.get('loss', 'huber'), random_state=456
                     )
-                    rf.fit(X_train_filled, y_train_filled)
-                    rf_ensemble.append(rf)
-                    
-                    # Get individual predictions using filled validation data
-                    rf_pred_single = rf.predict(X_val_filled)
-                    rf_predictions.append(rf_pred_single)
+                ]
+                
+                # Adaptive model selection based on sparsity
+                if sparsity_ratio > 0.5:  # High sparsity: use all sparse-optimized models
+                    models_to_use = sparse_models
+                elif sparsity_ratio > 0.3:  # Medium sparsity: use RF + ExtraTrees
+                    models_to_use = sparse_models[:2]
+                else:  # Low sparsity: use standard RF ensemble
+                    models_to_use = [sparse_models[0]]  # Just optimized RF
+                
+                print(f"Using {len(models_to_use)} sparse-optimized models for sparsity level {sparsity_ratio:.1%}")
+                
+                for i, model in enumerate(models_to_use):
+                    try:
+                        model.fit(X_train_filled, y_train_filled)
+                        rf_ensemble.append(model)
+                        
+                        # Get individual predictions using filled validation data
+                        rf_pred_single = model.predict(X_val_filled)
+                        rf_predictions.append(rf_pred_single)
+                        
+                        model_name = type(model).__name__
+                        print(f"   Trained {model_name} ({i+1}/{len(models_to_use)})")
+                        
+                    except Exception as e:
+                        print(f"   Warning: {type(model).__name__} failed: {e}")
                 
                 # Average ensemble predictions
                 rf_pred = np.mean(rf_predictions, axis=0)
@@ -275,8 +356,11 @@ class UnemploymentModelTrainer:
                     'feature_count': len(feature_cols)
                 }
                 
-                # Feature importance
-                self.feature_importance[f"{region}_rf"] = dict(zip(feature_cols, rf.feature_importances_))
+                # Feature importance (use first model in ensemble for feature importance)
+                if rf_ensemble:
+                    first_model = rf_ensemble[0]
+                    if hasattr(first_model, 'feature_importances_'):
+                        self.feature_importance[f"{region}_rf"] = dict(zip(feature_cols, first_model.feature_importances_))
                 
                 print(f"TRAINED {region} RF MAE: {rf_mae:.3f}")
                 

@@ -26,34 +26,320 @@
   },
   "auto_detection": {
     "enabled": true,
-    "region_patterns": ["Auckland", "Wellington", "Canterbury", "Northland", "Waikato", "Bay.*Plenty", "Canterbury", "Otago"],
+    "region_patterns": ["Northland", "Auckland", "Waikato", "Bay.*Plenty", "Gisborne", "Hawke.*Bay", "Taranaki", "Manawatu.*Whanganui", "Wellington", "Tasman", "Nelson", "Marlborough", "West.*Coast", "Canterbury", "Otago", "Southland"],
     "age_patterns": ["\\d+-\\d+\\s*Years?", "\\d+\\+\\s*Years?", "Total.*Ages?"],
     "fallback_to_config": true
+  },
+  "validation_schemas": {
+    "unemployment_data": {
+      "columns": {
+        "unemployment_rate": {
+          "type": "float",
+          "min": 0.0,
+          "max": 100.0,
+          "allow_null": true,
+          "description": "Unemployment rate as percentage"
+        },
+        "date": {
+          "type": "datetime",
+          "allow_null": false,
+          "description": "Date column in YYYY-MM-DD format"
+        }
+      },
+      "required_columns": ["date"],
+      "row_count_min": 5,
+      "completeness_threshold": 0.2
+    },
+    "economic_indicators": {
+      "columns": {
+        "cpi_value": {
+          "type": "float",
+          "min": 0.0,
+          "max": 10000.0,
+          "allow_null": true
+        },
+        "gdp_millions": {
+          "type": "float",
+          "min": 0.0,
+          "allow_null": true
+        },
+        "lci_value": {
+          "type": "float",
+          "min": 0.0,
+          "allow_null": true
+        }
+      },
+      "completeness_threshold": 0.1
+    },
+    "survey_data": {
+      "columns": {
+        "buo_": {
+          "type": "float",
+          "min": 0.0,
+          "max": 100.0,
+          "allow_null": true,
+          "pattern": "BUO_.*"
+        }
+      },
+      "completeness_threshold": 0.05
+    }
+  },
+  "data_quality": {
+    "completeness_thresholds": {
+      "unemployment_core": 0.8,
+      "unemployment_demographic": 0.6,
+      "economic_indicators": 0.4,
+      "survey_data": 0.2,
+      "monthly_data": 0.5,
+      "quarterly_data": 0.7,
+      "annual_data": 0.3
+    },
+    "outlier_detection": {
+      "enabled": true,
+      "methods": ["iqr", "zscore", "isolation_forest"],
+      "unemployment_rates": {
+        "iqr_multiplier": 2.5,
+        "zscore_threshold": 3.0,
+        "isolation_contamination": 0.1,
+        "demographic_multiplier": 3.0,
+        "regional_multiplier": 2.0
+      },
+      "economic_indicators": {
+        "iqr_multiplier": 3.0,
+        "zscore_threshold": 3.5,
+        "isolation_contamination": 0.05
+      },
+      "time_series_specific": {
+        "rolling_window": 8,
+        "seasonal_adjustment": true,
+        "trend_detection": true
+      }
+    },
+    "data_drift": {
+      "enabled": true,
+      "reference_period": 12,
+      "drift_threshold": 0.1,
+      "alert_methods": ["log", "console"]
+    }
+  },
+  "processing_rules": {
+    "missing_value_handling": {
+      "priority_order": [
+        "cross_sectional_correlated",
+        "cross_sectional_mean", 
+        "kalman_filter",
+        "seasonal_decomposition",
+        "linear_interpolation",
+        "forward_fill",
+        "training_statistics"
+      ],
+      "unemployment_rates": {
+        "max_gap_size": 4,
+        "interpolation_method": "linear",
+        "fallback_value": 5.0,
+        "use_correlated_series": true,
+        "correlation_threshold": 0.6
+      },
+      "economic_indicators": {
+        "max_gap_size": 8,
+        "interpolation_method": "spline",
+        "fallback_value": 0.0,
+        "seasonal_adjustment": true
+      },
+      "survey_data": {
+        "max_gap_size": 2,
+        "interpolation_method": "forward_fill",
+        "fallback_value": 0.0,
+        "preserve_sparsity": true
+      }
+    },
+    "outlier_treatment": {
+      "unemployment_rates": {
+        "method": "interpolate",
+        "preserve_extremes": false,
+        "context_window": 8
+      },
+      "economic_indicators": {
+        "method": "cap_at_percentile",
+        "percentiles": [1, 99],
+        "context_window": 12
+      },
+      "survey_data": {
+        "method": "flag_only",
+        "preserve_original": true
+      }
+    },
+    "data_transformation": {
+      "unemployment_rates": {
+        "log_transform": false,
+        "standardize": false,
+        "clip_bounds": [0.0, 100.0]
+      },
+      "economic_indicators": {
+        "log_transform": false,
+        "standardize": false,
+        "inflation_adjust": false
+      }
+    }
+  },
+  "data_sources": {
+    "HLF": {
+      "description": "Household Labour Force Survey",
+      "expected_frequency": "quarterly",
+      "validation_schema": "unemployment_data",
+      "processing_priority": "high",
+      "required_patterns": ["unemployment_rate", "labour_force"],
+      "quality_threshold": 0.7,
+      "demographic_splits": true
+    },
+    "MEI": {
+      "description": "Monthly Employment Indicators",
+      "expected_frequency": "monthly",
+      "validation_schema": "economic_indicators",
+      "processing_priority": "medium",
+      "aggregation_method": "mean",
+      "quality_threshold": 0.5
+    },
+    "GDP": {
+      "description": "Gross Domestic Product",
+      "expected_frequency": "quarterly",
+      "validation_schema": "economic_indicators",
+      "processing_priority": "medium",
+      "quality_threshold": 0.6,
+      "regional_breakdown": true
+    },
+    "CPI": {
+      "description": "Consumer Price Index",
+      "expected_frequency": "quarterly",
+      "validation_schema": "economic_indicators",
+      "processing_priority": "medium",
+      "quality_threshold": 0.6
+    },
+    "BUO": {
+      "description": "Business Use of ICT Survey",
+      "expected_frequency": "annual",
+      "validation_schema": "survey_data",
+      "processing_priority": "low",
+      "quality_threshold": 0.2,
+      "sparse_data": true
+    },
+    "ECT": {
+      "description": "Electronic Card Transactions",
+      "expected_frequency": "monthly",
+      "validation_schema": "economic_indicators",
+      "processing_priority": "medium",
+      "aggregation_method": "sum",
+      "quality_threshold": 0.5
+    },
+    "QEM": {
+      "description": "Quarterly Employment Survey",
+      "expected_frequency": "quarterly",
+      "validation_schema": "economic_indicators",
+      "processing_priority": "medium",
+      "quality_threshold": 0.6
+    },
+    "LCI": {
+      "description": "Labour Cost Index",
+      "expected_frequency": "quarterly",
+      "validation_schema": "economic_indicators",
+      "processing_priority": "medium",
+      "quality_threshold": 0.6
+    }
+  },
+  "error_handling": {
+    "validation_failures": {
+      "schema_violations": "warn_and_continue",
+      "missing_required_columns": "error_and_skip",
+      "data_type_mismatches": "warn_and_convert",
+      "range_violations": "warn_and_clip"
+    },
+    "missing_files": {
+      "critical_sources": "error",
+      "optional_sources": "warn"
+    },
+    "processing_errors": {
+      "outlier_detection_failure": "warn_and_fallback",
+      "imputation_failure": "warn_and_simple_fill",
+      "aggregation_failure": "error"
+    },
+    "logging": {
+      "level": "INFO",
+      "file_path": "logs/data_processing.log",
+      "rotation": "daily",
+      "max_files": 30
+    }
+  },
+  "performance": {
+    "chunk_size": 10000,
+    "parallel_processing": {
+      "enabled": true,
+      "max_workers": 4,
+      "memory_limit_gb": 8
+    },
+    "caching": {
+      "enabled": true,
+      "cache_dir": "cache/",
+      "ttl_hours": 24
+    }
   },
   "forecasting": {
     "target_columns": {
       "pattern": ".*[Uu]nemployment_[Rr]ate.*",
-      "exclude_patterns": ["_backup", "_temp", "_old"],
+      "exclude_patterns": ["_backup", "_temp", "_old", "_lag", "_ma", "_change"],
       "priority_regions": ["Auckland", "Wellington", "Canterbury"],
       "priority_demographics": ["European", "Maori", "Asian", "Male", "Female", "15-24 Years", "25-54 Years", "55+ Years"],
-      "fallback_to_any": true
+      "fallback_to_any": true,
+      "minimum_data_points": 10,
+      "quality_threshold": 0.3
     },
     "demographic_comparison": {
       "enabled": true,
       "comparison_demographics": ["European", "Asian", "Pacific_Peoples", "Maori", "Male", "Female", "15-24 Years", "25-54 Years", "55+ Years", "Total"],
       "analysis_regions": ["Auckland", "Wellington", "Canterbury"],
-      "separate_models": true
+      "separate_models": true,
+      "cross_demographic_validation": true
     },
     "feature_engineering": {
       "lag_periods": [1, 4],
       "rolling_windows": [3],
-      "economic_indicators": ["cpi_value", "lci_value", "gdp"]
+      "economic_indicators": ["cpi_value", "lci_value", "gdp"],
+      "seasonal_features": ["quarter_sin", "quarter_cos"],
+      "trend_features": ["time_trend"],
+      "interaction_features": false,
+      "polynomial_features": false
     },
     "temporal_splitting": {
       "train_years": 16,
       "validation_years": 4,
       "test_years": 2,
-      "dynamic_boundaries": true
+      "dynamic_boundaries": true,
+      "minimum_train_periods": 40,
+      "rolling_window": false
+    },
+    "model_selection": {
+      "sparsity_thresholds": {
+        "survey_data": 0.7,
+        "unemployment_core": 0.8,
+        "economic_indicators": 0.9
+      },
+      "ensemble_methods": {
+        "random_forest": {
+          "n_estimators": 150,
+          "max_depth": 12,
+          "min_samples_split": 3
+        },
+        "extra_trees": {
+          "n_estimators": 150,
+          "max_depth": 10,
+          "min_samples_split": 2
+        },
+        "gradient_boosting": {
+          "n_estimators": 100,
+          "max_depth": 6,
+          "learning_rate": 0.1,
+          "loss": "huber"
+        }
+      }
     }
   }
 }

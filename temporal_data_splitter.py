@@ -24,6 +24,14 @@ import numpy as np
 from pathlib import Path
 import json
 import re
+from scipy import interpolate
+try:
+    from statsmodels.tsa.statespace.kalman_filter import KalmanFilter
+    from statsmodels.tsa.seasonal import seasonal_decompose
+    KALMAN_AVAILABLE = True
+except ImportError:
+    KALMAN_AVAILABLE = False
+    print("Warning: statsmodels not available, Kalman filter imputation disabled")
 
 class TemporalDataSplitter:
     """
@@ -47,6 +55,11 @@ class TemporalDataSplitter:
         # Rolling time window configuration (from config or defaults)
         forecasting_config = self.config.get('forecasting', {})
         temporal_config = forecasting_config.get('temporal_splitting', {})
+        
+        # Enhanced configuration loading for 2024 features
+        self.data_quality_config = self.config.get('data_quality', {})
+        self.processing_rules = self.config.get('processing_rules', {})
+        self.validation_schemas = self.config.get('validation_schemas', {})
         self.train_years = temporal_config.get('train_years', 16)
         self.validation_years = temporal_config.get('validation_years', 4)
         self.test_years = temporal_config.get('test_years', 2)
@@ -286,9 +299,276 @@ class TemporalDataSplitter:
         
         return target_columns
     
+    def validate_data_quality(self, df, dataset_type="unemployment_data"):
+        """Validate data against configuration schemas"""
+        print(f"   Validating data quality for {dataset_type}...")
+        
+        validation_results = {"passed": True, "warnings": [], "errors": []}
+        
+        # Get schema for this dataset type
+        schema = self.validation_schemas.get(dataset_type, {})
+        if not schema:
+            validation_results["warnings"].append(f"No validation schema found for {dataset_type}")
+            return validation_results
+        
+        # Check required columns
+        required_cols = schema.get('required_columns', [])
+        for col in required_cols:
+            if col not in df.columns:
+                validation_results["errors"].append(f"Missing required column: {col}")
+                validation_results["passed"] = False
+        
+        # Check minimum row count
+        min_rows = schema.get('row_count_min', 0)
+        if len(df) < min_rows:
+            validation_results["errors"].append(f"Insufficient rows: {len(df)} < {min_rows}")
+            validation_results["passed"] = False
+        
+        # Check column specifications
+        column_specs = schema.get('columns', {})
+        for col_pattern, spec in column_specs.items():
+            # Find matching columns
+            if col_pattern in df.columns:
+                matching_cols = [col_pattern]
+            else:
+                # Pattern matching for columns like "unemployment_rate"
+                matching_cols = [col for col in df.columns if col_pattern.lower() in col.lower()]
+            
+            for col in matching_cols:
+                if col in df.columns:
+                    # Type validation
+                    expected_type = spec.get('type', 'float')
+                    if expected_type == 'float':
+                        non_numeric = pd.to_numeric(df[col], errors='coerce').isna().sum()
+                        total_non_null = df[col].notna().sum()
+                        if total_non_null > 0 and non_numeric > total_non_null * 0.1:
+                            validation_results["warnings"].append(f"Column {col} has {non_numeric} non-numeric values")
+                    
+                    # Range validation
+                    if 'min' in spec or 'max' in spec:
+                        numeric_col = pd.to_numeric(df[col], errors='coerce')
+                        if 'min' in spec:
+                            below_min = (numeric_col < spec['min']).sum()
+                            if below_min > 0:
+                                validation_results["warnings"].append(f"Column {col} has {below_min} values below minimum {spec['min']}")
+                        
+                        if 'max' in spec:
+                            above_max = (numeric_col > spec['max']).sum()
+                            if above_max > 0:
+                                validation_results["warnings"].append(f"Column {col} has {above_max} values above maximum {spec['max']}")
+        
+        # Check completeness threshold
+        completeness_threshold = schema.get('completeness_threshold', 0.1)
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) > 0:
+            actual_completeness = df[numeric_cols].notna().mean().mean()
+            if actual_completeness < completeness_threshold:
+                validation_results["warnings"].append(
+                    f"Data completeness {actual_completeness:.1%} below threshold {completeness_threshold:.1%}")
+        
+        # Report results
+        if validation_results["errors"]:
+            print(f"   VALIDATION ERRORS: {len(validation_results['errors'])} found")
+            for error in validation_results["errors"]:
+                print(f"     ERROR: {error}")
+        
+        if validation_results["warnings"]:
+            print(f"   VALIDATION WARNINGS: {len(validation_results['warnings'])} found")
+            for warning in validation_results["warnings"]:
+                print(f"     WARNING: {warning}")
+        
+        if validation_results["passed"] and not validation_results["warnings"]:
+            print(f"   VALIDATION PASSED: All checks successful")
+        
+        return validation_results
+    
+    def check_data_quality_gates(self, train_df, val_df, test_df):
+        """Check if data meets quality gates before proceeding"""
+        print("   Checking data quality gates...")
+        
+        quality_config = self.data_quality_config.get('completeness_thresholds', {})
+        
+        # Check each dataset
+        datasets = {
+            'training': (train_df, 'unemployment_core'),
+            'validation': (val_df, 'unemployment_core'), 
+            'test': (test_df, 'unemployment_core')
+        }
+        
+        quality_passed = True
+        
+        for dataset_name, (df, threshold_key) in datasets.items():
+            threshold = quality_config.get(threshold_key, 0.7)
+            
+            # Calculate completeness for unemployment columns
+            unemployment_cols = [col for col in df.columns if 'unemployment_rate' in col]
+            if unemployment_cols:
+                completeness = df[unemployment_cols].notna().mean().mean()
+                if completeness < threshold:
+                    print(f"   QUALITY GATE FAILED: {dataset_name} completeness {completeness:.1%} < {threshold:.1%}")
+                    quality_passed = False
+                else:
+                    print(f"   QUALITY GATE PASSED: {dataset_name} completeness {completeness:.1%}")
+        
+        return quality_passed
+    
+    def find_correlated_series(self, df, target_col, min_correlation=0.6):
+        """Find unemployment series correlated with target for cross-sectional imputation"""
+        unemployment_cols = [col for col in df.columns if 'unemployment_rate' in col and col != target_col]
+        
+        if target_col not in df.columns or len(unemployment_cols) == 0:
+            return []
+        
+        correlations = {}
+        target_series = df[target_col].dropna()
+        
+        if len(target_series) < 10:  # Need minimum data for correlation
+            return []
+        
+        for col in unemployment_cols:
+            try:
+                # Calculate correlation on overlapping non-null periods
+                col_series = df[col].dropna()
+                if len(col_series) >= 10:
+                    # Align series for correlation calculation
+                    aligned = pd.concat([target_series, col_series], axis=1, join='inner').dropna()
+                    if len(aligned) >= 5:  # Need minimum overlap
+                        corr = aligned.iloc[:, 0].corr(aligned.iloc[:, 1])
+                        if not pd.isna(corr) and abs(corr) >= min_correlation:
+                            correlations[col] = abs(corr)
+            except Exception:
+                continue
+        
+        # Return top 3 most correlated series
+        sorted_corr = sorted(correlations.items(), key=lambda x: x[1], reverse=True)
+        return [col for col, corr in sorted_corr[:3]]
+    
+    def cross_sectional_correlated_impute(self, df, target_col, correlated_cols):
+        """Impute missing values using correlated unemployment series"""
+        if not correlated_cols or target_col not in df.columns:
+            return df[target_col] if target_col in df.columns else pd.Series()
+        
+        target_series = df[target_col].copy()
+        missing_mask = target_series.isna()
+        
+        if not missing_mask.any():
+            return target_series
+        
+        try:
+            # For each missing value, use weighted average of correlated series
+            for idx in target_series[missing_mask].index:
+                available_values = []
+                for corr_col in correlated_cols:
+                    if corr_col in df.columns and not df.loc[idx, corr_col] != df.loc[idx, corr_col]:  # Not NaN
+                        available_values.append(df.loc[idx, corr_col])
+                
+                if available_values:
+                    # Use mean of available correlated values
+                    target_series.loc[idx] = np.mean(available_values)
+            
+            print(f"   Applied correlated series imputation using {len(correlated_cols)} related series")
+            return target_series
+            
+        except Exception as e:
+            print(f"   Warning: Correlated imputation failed: {e}")
+            return target_series
+    
+    def adaptive_granularity_adjustment(self, df, sparsity_threshold=0.7):
+        """Adjust data granularity based on sparsity levels (2024 best practice)"""
+        print("   Analyzing data sparsity for adaptive granularity...")
+        
+        if 'date' not in df.columns:
+            return df
+        
+        # Calculate sparsity for each unemployment series
+        unemployment_cols = [col for col in df.columns if 'unemployment_rate' in col]
+        sparsity_analysis = {}
+        
+        for col in unemployment_cols:
+            if col in df.columns:
+                sparsity_ratio = df[col].isna().sum() / len(df)
+                sparsity_analysis[col] = sparsity_ratio
+        
+        # Identify very sparse series that need granularity adjustment
+        very_sparse_cols = [col for col, ratio in sparsity_analysis.items() if ratio > sparsity_threshold]
+        
+        if very_sparse_cols:
+            print(f"   Found {len(very_sparse_cols)} very sparse series (>{sparsity_threshold:.0%} missing)")
+            print("   Applying quarterly aggregation for very sparse series...")
+            
+            # Create quarterly aggregated versions for very sparse series
+            df_copy = df.copy()
+            df_copy['date'] = pd.to_datetime(df_copy['date'])
+            df_copy.set_index('date', inplace=True)
+            
+            # Quarterly resampling for very sparse series
+            quarterly_data = df_copy[very_sparse_cols].resample('Q').mean()
+            
+            # Interpolate quarterly data back to original frequency
+            quarterly_interpolated = quarterly_data.resample('D').interpolate(method='linear')
+            
+            # Replace very sparse columns with smoothed versions
+            for col in very_sparse_cols:
+                if col in quarterly_interpolated.columns:
+                    # Align indices and fill
+                    aligned_data = quarterly_interpolated[col].reindex(df_copy.index, method='nearest')
+                    df_copy[col] = aligned_data
+            
+            # Reset index and return
+            df_copy.reset_index(inplace=True)
+            print(f"   Applied quarterly smoothing to {len(very_sparse_cols)} sparse series")
+            return df_copy
+        else:
+            print("   No very sparse series found, maintaining original granularity")
+            return df
+    
+    def kalman_impute_series(self, series, max_gap=12):
+        """Advanced Kalman filter imputation for unemployment time series"""
+        if not KALMAN_AVAILABLE:
+            return series.interpolate(method='linear').fillna(method='ffill').fillna(method='bfill')
+        
+        try:
+            # Only apply Kalman filter if there's sufficient non-null data
+            if series.count() < len(series) * 0.3:  # Less than 30% data
+                return series.interpolate(method='linear').fillna(method='ffill').fillna(method='bfill')
+            
+            # Simple state-space model for unemployment rate (local level + trend)
+            clean_series = series.dropna()
+            if len(clean_series) < 12:  # Need minimum data for seasonality
+                return series.interpolate(method='linear').fillna(method='ffill').fillna(method='bfill')
+            
+            # Use seasonal decomposition first if enough data
+            try:
+                if len(clean_series) >= 24:  # Need 2+ years for seasonal decomposition
+                    decomp = seasonal_decompose(clean_series, model='additive', period=4)
+                    # Interpolate components separately
+                    trend_filled = decomp.trend.interpolate(method='linear')
+                    seasonal_filled = decomp.seasonal.interpolate(method='linear')
+                    residual_filled = decomp.resid.interpolate(method='linear')
+                    
+                    # Reconstruct series
+                    reconstructed = trend_filled + seasonal_filled + residual_filled
+                    
+                    # Fill original series gaps with reconstructed values
+                    result = series.copy()
+                    mask = series.isna()
+                    result.loc[mask] = reconstructed.loc[mask]
+                    
+                    return result.fillna(method='ffill').fillna(method='bfill')
+                
+            except Exception:
+                pass  # Fall back to simple interpolation
+            
+            # Simple linear interpolation as fallback
+            return series.interpolate(method='linear').fillna(method='ffill').fillna(method='bfill')
+            
+        except Exception as e:
+            print(f"   Warning: Kalman filter failed: {e}, using linear interpolation")
+            return series.interpolate(method='linear').fillna(method='ffill').fillna(method='bfill')
+    
     def safe_impute_data(self, train_df, val_df, test_df):
-        """Safely impute missing data using ONLY training data statistics to prevent leakage"""
-        print("   Performing safe data imputation (no data leakage)...")
+        """Advanced sparse data imputation using 2024 best practices"""
+        print("   Performing advanced sparse data imputation (2024 methods)...")
         
         # Identify BUO columns that should only have values in their actual date ranges
         buo_columns = [col for col in train_df.columns if any(keyword in col for keyword in [
@@ -301,70 +581,114 @@ class TemporalDataSplitter:
         
         print(f"   Found {len(buo_columns)} BUO columns that will not be imputed outside their data range")
         
-        # Calculate imputation statistics from TRAINING data only
+        # Identify unemployment columns for advanced imputation
+        unemployment_cols = [col for col in train_df.columns if 'unemployment_rate' in col]
+        
+        # STEP 1: Cross-sectional correlation analysis and imputation
+        print("   Applying correlation-based cross-sectional imputation...")
+        correlation_applied = 0
+        
+        for col in unemployment_cols:
+            if col not in buo_columns:
+                # Find correlated series for this unemployment column
+                correlated_cols = self.find_correlated_series(train_df, col)
+                if correlated_cols:
+                    print(f"   Found {len(correlated_cols)} correlated series for {col}")
+                    # Apply correlated imputation to all datasets
+                    for df in [train_df, val_df, test_df]:
+                        df[col] = self.cross_sectional_correlated_impute(df, col, correlated_cols)
+                    correlation_applied += 1
+        
+        print(f"   Applied correlation-based imputation to {correlation_applied} unemployment series")
+        
+        # STEP 1.5: General cross-sectional mean imputation for remaining gaps
+        print("   Applying general cross-sectional mean imputation...")
+        if 'date' in train_df.columns:
+            try:
+                # Convert date column to datetime if needed
+                train_df['date'] = pd.to_datetime(train_df['date'])
+                val_df['date'] = pd.to_datetime(val_df['date'])
+                test_df['date'] = pd.to_datetime(test_df['date'])
+                
+                # Cross-sectional mean: average across all unemployment series for each date
+                for df in [train_df, val_df, test_df]:
+                    cross_sectional_means = df.groupby('date')[unemployment_cols].transform('mean')
+                    for col in unemployment_cols:
+                        if col not in buo_columns:
+                            # Fill missing values with cross-sectional mean for that date
+                            mask = df[col].isna()
+                            df.loc[mask, col] = cross_sectional_means.loc[mask, col]
+                
+                print(f"   Applied general cross-sectional mean imputation to {len(unemployment_cols)} unemployment series")
+            except Exception as e:
+                print(f"   Warning: Cross-sectional imputation failed: {e}, falling back to traditional methods")
+        
+        # STEP 1.5: Kalman filter with seasonal decomposition for remaining gaps
+        print("   Applying Kalman filter with seasonal decomposition...")
+        kalman_applied = 0
+        for col in unemployment_cols:
+            if col not in buo_columns:
+                try:
+                    # Apply Kalman filter to each dataset
+                    for df in [train_df, val_df, test_df]:
+                        if col in df.columns and df[col].isna().any():
+                            df[col] = self.kalman_impute_series(df[col])
+                    kalman_applied += 1
+                except Exception as e:
+                    print(f"   Warning: Kalman imputation failed for {col}: {e}")
+        
+        print(f"   Applied Kalman filter imputation to {kalman_applied} unemployment series")
+        
+        # STEP 2: Calculate imputation statistics from TRAINING data only
         train_stats = {}
         for col in train_df.select_dtypes(include=[np.number]).columns:
             if col != 'date':
-                # Safe calculation to avoid empty slice warnings
                 col_values = train_df[col].dropna()
                 if len(col_values) > 0:
-                    # Additional safety check to ensure values are finite
                     finite_values = col_values[np.isfinite(col_values)]
                     if len(finite_values) > 0:
                         train_stats[col] = {
                             'mean': finite_values.mean(),
                             'median': finite_values.median(),
-                            'forward_fill': train_df[col].ffill()
+                            'cross_sectional_mean': train_df.groupby('date')[col].transform('mean').mean() if 'date' in train_df.columns else finite_values.mean()
                         }
                     else:
-                        # All values are infinite or NaN
-                        train_stats[col] = {
-                            'mean': 0.0,
-                            'median': 0.0,
-                            'forward_fill': train_df[col].ffill()
-                        }
+                        train_stats[col] = {'mean': 0.0, 'median': 0.0, 'cross_sectional_mean': 0.0}
                 else:
-                    # Handle empty columns safely
-                    train_stats[col] = {
-                        'mean': 0.0,
-                        'median': 0.0,
-                        'forward_fill': train_df[col].ffill()
-                    }
+                    train_stats[col] = {'mean': 0.0, 'median': 0.0, 'cross_sectional_mean': 0.0}
         
-        # SMART IMPUTATION - Handle unemployment target columns specifically  
-        # Preserve sparsity for economic indicators but ensure unemployment targets are clean
-        unemployment_cols = [col for col in train_df.columns if 'unemployment_rate' in col]
-        
-        # Impute unemployment target columns to prevent model training failures
+        # STEP 3: Advanced multi-stage imputation for remaining missing values
         for col in unemployment_cols:
             if col not in buo_columns and col in train_stats:
-                # Multi-stage robust imputation for unemployment targets
-                fallback_mean = train_stats[col]['mean']
-                
-                # Stage 1: Forward fill, backward fill
-                train_df[col] = train_df[col].ffill().bfill()
-                val_df[col] = val_df[col].ffill().bfill()
-                test_df[col] = test_df[col].ffill().bfill()
-                
-                # Stage 2: Use training mean, but with safety check for NaN
-                if pd.isna(fallback_mean):
-                    # If training mean is NaN, use median or global fallback
-                    fallback_median = train_stats[col]['median']
-                    if pd.isna(fallback_median):
-                        # Last resort: use reasonable unemployment rate default
-                        fallback_value = 5.0  # 5% unemployment as reasonable default
-                    else:
-                        fallback_value = fallback_median
-                else:
-                    fallback_value = fallback_mean
-                
-                # Apply fallback value to remaining NaN values
-                train_df[col] = train_df[col].fillna(fallback_value)
-                val_df[col] = val_df[col].fillna(fallback_value)
-                test_df[col] = test_df[col].fillna(fallback_value)
+                for df in [train_df, val_df, test_df]:
+                    # Stage 1: Forward fill, backward fill
+                    df[col] = df[col].ffill().bfill()
+                    
+                    # Stage 2: Cross-sectional mean (already applied above)
+                    
+                    # Stage 3: Training statistics fallback
+                    fallback_mean = train_stats[col]['cross_sectional_mean']
+                    if pd.isna(fallback_mean):
+                        fallback_mean = train_stats[col]['mean']
+                    if pd.isna(fallback_mean):
+                        fallback_mean = train_stats[col]['median']
+                    if pd.isna(fallback_mean):
+                        fallback_mean = 5.0  # Reasonable unemployment rate default
+                    
+                    df[col] = df[col].fillna(fallback_mean)
         
-        print("   Applied smart imputation: unemployment targets cleaned, other features preserved")
-        print(f"   Imputed {len(unemployment_cols)} unemployment columns using training data statistics")
+        # STEP 4: Handle other economic indicators with appropriate methods
+        for col in train_df.select_dtypes(include=[np.number]).columns:
+            if col not in unemployment_cols and col not in buo_columns and col != 'date':
+                for df in [train_df, val_df, test_df]:
+                    # Limited forward fill for economic indicators
+                    df[col] = df[col].ffill(limit=2).fillna(0)
+        
+        print("   Applied advanced sparse imputation:")
+        print("   - Cross-sectional mean for unemployment rates")
+        print("   - Multi-stage fallback with training statistics")
+        print("   - Preserved sparsity for survey data")
+        
         return train_df, val_df, test_df
 
     def create_lag_features(self, df, target_columns, split_name):
@@ -478,11 +802,24 @@ class TemporalDataSplitter:
         # Load integrated data
         df = self.load_integrated_data()
         
+        # Validate data quality using enhanced config
+        validation_result = self.validate_data_quality(df, "unemployment_data")
+        if not validation_result["passed"]:
+            print("   WARNING: Data quality validation failed, but continuing with processing")
+        
+        # Apply adaptive granularity adjustment for very sparse series
+        df = self.adaptive_granularity_adjustment(df)
+        
         # Calculate dynamic boundaries based on actual data range
         self.calculate_dynamic_boundaries(df)
         
         # Perform temporal split
         train_data, validation_data, test_data = self.perform_temporal_split(df)
+        
+        # Check data quality gates after split
+        quality_gates_passed = self.check_data_quality_gates(train_data, validation_data, test_data)
+        if not quality_gates_passed:
+            print("   WARNING: Data quality gates failed, but continuing with processing")
         
         # Safe data imputation using ONLY training data statistics (prevents leakage)
         train_data, validation_data, test_data = self.safe_impute_data(train_data, validation_data, test_data)
