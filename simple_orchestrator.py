@@ -464,7 +464,7 @@ class ProductionOrchestrator:
         
         # Check models
         models_dir = self.base_dir / 'models'
-        if not models_dir.exists() or not (models_dir / 'fixed_unemployment_forecasts.json').exists():
+        if not models_dir.exists() or not (models_dir / 'unemployment_forecasts.json').exists():
             print("ERROR: Forecasts not found")
             return False
             
