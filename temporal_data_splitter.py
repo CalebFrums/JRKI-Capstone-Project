@@ -198,9 +198,9 @@ class TemporalDataSplitter:
         
         # Default pattern if config not found
         pattern = target_config.get('pattern', '.*_unemployment_rate$')
-        exclude_patterns = target_config.get('exclude_patterns', ['lag', 'ma', 'change'])
+        exclude_patterns = target_config.get('exclude_patterns', ['lag', '_ma3', '_ma2', '_ma4', '_ma5', 'change'])
         priority_regions = target_config.get('priority_regions', ['Auckland', 'Wellington', 'Canterbury'])
-        priority_demographics = target_config.get('priority_demographics', ['European', 'Maori', 'Total'])
+        priority_demographics = target_config.get('priority_demographics', ['European', 'Maori', 'Asian', 'Male', 'Female', 'Total'])
         fallback_to_any = target_config.get('fallback_to_any', True)
         
         # Create dynamic demographic patterns for smart matching
@@ -214,8 +214,9 @@ class TemporalDataSplitter:
             elif '55+' in demo or '55 Years' in demo:
                 demographic_patterns[demo] = ['55_Plus_Years', '55_Plus', '55+']
             else:
-                # Default: exact match for ethnic/sex demographics
-                demographic_patterns[demo] = [demo]
+                # Default: case-insensitive match for ethnic/sex demographics
+                demographic_patterns[demo] = [demo, demo.lower(), demo.upper()]
+        
         
         print(f"   Searching for target columns with pattern: {pattern}")
         
@@ -229,6 +230,7 @@ class TemporalDataSplitter:
         
         # Find all columns matching the pattern
         candidate_columns = []
+        
         for col in df.columns:
             if regex_pattern.match(col):
                 # Check if column should be excluded
@@ -253,35 +255,78 @@ class TemporalDataSplitter:
                     return fallback_columns[:10]  # Limit to first 10 to avoid too many columns
             return []
         
-        # Prioritize columns based on configuration
+        # Find priority columns using comprehensive demographic matching (best practices)
         priority_columns = []
+        demographic_columns = []  # Demographic columns regardless of region
+        regional_columns = []     # Regional columns regardless of demographic
         other_columns = []
         
         for col in candidate_columns:
             is_priority = False
+            is_demographic = False
+            is_regional = False
             
-            # Check if column contains priority regions and demographics
+            # Check for demographic patterns (case-insensitive)
+            for demo, patterns in demographic_patterns.items():
+                if any(pattern.lower() in col.lower() for pattern in patterns):
+                    is_demographic = True
+                    break
+            
+            # Check for priority regions (case-insensitive)  
             for region in priority_regions:
-                if region in col:
-                    # Use smart pattern matching for demographics
-                    for demo, patterns in demographic_patterns.items():
-                        if any(pattern in col for pattern in patterns):
-                            priority_columns.append(col)
-                            is_priority = True
-                            break
-                    if is_priority:
-                        break
-            
-            if not is_priority:
+                if region.lower() in col.lower():
+                    is_regional = True
+                    break
+                    
+            # Priority: columns that have BOTH region AND demographic
+            if is_regional and is_demographic:
+                priority_columns.append(col)
+                is_priority = True
+            # Secondary: important demographic columns (Male, Female, Maori, etc.)
+            elif is_demographic:
+                demographic_columns.append(col)
+            # Tertiary: important regional columns
+            elif is_regional:
+                regional_columns.append(col)
+            else:
                 other_columns.append(col)
         
-        # Select final target columns
+        # Select final target columns using best practices from research
+        target_columns = []
+        
+        # Primary: Region + Demographic combinations (highest priority)
         if priority_columns:
-            target_columns = priority_columns
-            print(f"   Using {len(priority_columns)} priority target columns")
-        elif fallback_to_any and other_columns:
-            target_columns = other_columns[:10]  # Limit to first 10
-            print(f"   No priority columns found, using first {len(target_columns)} available columns")
+            target_columns.extend(priority_columns)
+            print(f"   Added {len(priority_columns)} region+demographic priority columns")
+            
+        # Secondary: Use priority demographics from config instead of hardcoded list
+        important_demo_cols = []
+        
+        for col in demographic_columns:
+            for demo in priority_demographics:
+                if demo.lower() in col.lower():
+                    important_demo_cols.append(col)
+                    break
+        
+        if important_demo_cols:
+            # Limit to avoid overfitting, but include key demographics  
+            max_demo_cols = len(important_demo_cols)  # Include ALL important demographic targets for comprehensive coverage
+            target_columns.extend(important_demo_cols[:max_demo_cols])
+            print(f"   Added {len(important_demo_cols[:max_demo_cols])} important demographic columns")
+            
+        # Fallback: Use other available columns if we have very few targets
+        if len(target_columns) < 10 and fallback_to_any:
+            remaining_needed = 10 - len(target_columns)
+            fallback_cols = (regional_columns + other_columns)[:remaining_needed]
+            target_columns.extend(fallback_cols)
+            print(f"   Added {len(fallback_cols)} fallback columns")
+            
+        # Final selection
+        if not target_columns:
+            target_columns = candidate_columns[:10]  # Emergency fallback
+            print(f"   Emergency fallback: using first {len(target_columns)} available columns")
+        else:
+            print(f"   Selected {len(target_columns)} total target columns using comprehensive selection")
         
         # Extract region names for display
         region_names = []

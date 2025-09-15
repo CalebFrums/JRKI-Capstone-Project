@@ -972,23 +972,19 @@ class AdvancedUnemploymentForecaster:
                 
                 # Parse target variable components for Power BI dimensions
                 parts = target_variable.split('_')
-                region = next((part for part in parts if part in ['Auckland', 'Wellington', 'Canterbury']), 'Unknown')
+                
+                # Get region patterns from config
+                priority_regions = self.config.get('forecasting', {}).get('target_columns', {}).get('priority_regions', ['Auckland', 'Wellington', 'Canterbury'])
+                region = next((part for part in parts if part in priority_regions), 'Unknown')
                 demographic = None
                 age_group = None
                 
-                # Extract demographic info
-                if 'European' in target_variable:
-                    demographic = 'European'
-                elif 'Asian' in target_variable:
-                    demographic = 'Asian'
-                elif 'Maori' in target_variable:
-                    demographic = 'Maori'
-                elif 'Pacific' in target_variable:
-                    demographic = 'Pacific_Peoples'
-                elif 'Female' in target_variable:
-                    demographic = 'Female'
-                elif 'Male' in target_variable:
-                    demographic = 'Male'
+                # Get demographic patterns from config and extract demographic info
+                priority_demographics = self.config.get('forecasting', {}).get('target_columns', {}).get('priority_demographics', ['European', 'Maori', 'Pacific_Peoples', 'Asian', 'Male', 'Female'])
+                for demo in priority_demographics:
+                    if demo in target_variable:
+                        demographic = demo
+                        break
                 
                 # Extract age group
                 if '15_to_24' in target_variable or '15-24' in target_variable:

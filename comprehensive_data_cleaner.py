@@ -740,7 +740,7 @@ class GovernmentDataCleaner:
                         quality += 1
                     
                     # Check for regions
-                    region_patterns = ['Auckland', 'Wellington', 'Canterbury', 'Northland', 'Waikato']
+                    region_patterns = self.config.get('auto_detection', {}).get('region_patterns', ['Auckland', 'Wellington', 'Canterbury', 'Northland', 'Waikato'])
                     if any(pattern in region_text for pattern in region_patterns):
                         region_count += 1
                         quality += 1

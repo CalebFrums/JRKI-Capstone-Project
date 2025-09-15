@@ -1,10 +1,11 @@
 {
   "regions": {
     "unemployment_core": ["Auckland", "Wellington", "Canterbury"],
-    "gdp_all": ["Northland", "Auckland", "Waikato", "Bay_of_Plenty", "Gisborne", "Hawkes_Bay", "Taranaki", "Manawatu_Whanganui", "Wellington", "West_Coast", "Canterbury", "Otago", "Southland", "Marlborough", "Tasman_Nelson", "Total_North_Island", "Total_South_Island", "New_Zealand"],
+    "gdp_all": ["Northland", "Auckland", "Waikato", "Bay_of_Plenty", "Gisborne", "Hawke_s_Bay", "Taranaki", "Manawatu_Whanganui", "Wellington", "West_Coast", "Canterbury", "Otago", "Southland", "Marlborough", "Tasman_Nelson", "Total_North_Island", "Total_South_Island", "New_Zealand"],
     "cpi_regional": ["Auckland", "Wellington", "Rest_North_Island", "North_Island", "Canterbury", "Rest_South_Island", "South_Island"],
     "ethnic_subset": ["Northland", "Auckland", "Waikato", "Bay_of_Plenty", "Canterbury"],
-    "mei_all_regions": ["Northland", "Auckland", "Waikato", "Bay of Plenty", "Gisborne", "Hawkes Bay", "Taranaki", "Manawatu-Whanganui", "Wellington", "Tasman", "Nelson", "Marlborough", "West Coast", "Canterbury", "Otago", "Southland"]
+    "mei_all_regions": ["Northland", "Auckland", "Waikato", "Bay of Plenty", "Gisborne", "Hawkes Bay", "Taranaki", "Manawatu-Whanganui", "Wellington", "Tasman", "Nelson", "Marlborough", "West Coast", "Canterbury", "Otago", "Southland"],
+    "correlation_economic": ["Auckland", "Wellington", "Canterbury", "Rest_North_Island", "Rest_South_Island", "North_Island", "South_Island", "New_Zealand"]
   },
   "demographics": {
     "age_groups_basic": ["15-24 Years", "25-54 Years", "55+ Years", "Total All Ages"],
@@ -15,9 +16,16 @@
   "industries": {
     "mei_industries": ["Agriculture_Forestry_Fishing", "Mining", "Manufacturing", "Electricity_Gas_Water_Waste", "Construction", "Wholesale_Trade", "Retail_Trade", "Accommodation_Food_Services", "Transport_Postal_Warehousing", "Information_Media_Telecommunications", "Financial_Insurance_Services", "Rental_Hiring_Real_Estate", "Professional_Scientific_Technical", "Administrative_Support_Services", "Public_Administration_Safety", "Education_Training", "Health_Care_Social_Assistance", "Arts_Recreation_Services", "Other_Services"],
     "mei_high_level": ["Primary_industries", "Goods_producing_industries", "Service_industries", "All_industries"],
-    "ect_categories": ["Retail", "Hospitality", "Services", "Manufacturing", "Transport", "Construction", "Other_Industries"],
+    "mei_adjustments": ["Actual", "Seasonally_adjusted", "Trend"],
+    "mei_variables": ["Filled_jobs", "Earnings_cash", "Earnings_accrued"],
+    "ect_categories": ["Consumables", "Durables", "Hospitality", "Services", "Apparel", "Motor_vehicles_excl_fuel", "Fuel", "Non_retail_excl_services", "RTS_total_industries", "RTS_core_industries", "Total", "Credit", "Debit"],
+    "ect_adjustments": ["Actual", "Seasonally_adjusted", "Trend"],
+    "ect_change_types": ["Percentage_change_from_same_period_previous_year", "Percentage_change_from_previous_period"],
     "buo_categories": ["ICT", "Innovation", "Digital_Technology", "E_Commerce", "Business_Operations"],
-    "qem_sectors": ["Private_Sector", "Public_Sector", "Primary_Industries", "Secondary_Industries", "Tertiary_Industries"]
+    "qem_sectors": ["Private_Sector", "Public_Sector", "Total_All_Sectors"],
+    "qem_industries": ["Forestry_Mining", "Manufacturing", "Electricity_Gas_Water_Waste", "Construction", "Wholesale_Trade", "Retail_Trade", "Accommodation_Food_Services", "Transport_Postal_Warehousing", "Information_Media_Telecommunications", "Financial_Insurance_Services", "Rental_Hiring_Real_Estate", "Professional_Scientific_Technical_Administrative_Support", "Public_Administration_Safety", "Education_Training", "Health_Care_Social_Assistance", "Arts_Recreation_Other_Services", "Total_All_Industries"],
+    "qem_employment_status": ["Part_Time_Paid_Employee", "Full_Time_Paid_Employee", "Total_Status_in_Employment"],
+    "qem_earnings_types": ["Ordinary_Time_Hourly", "Overtime_Hourly", "Total_Ordinary_Time_Overtime_Hourly"]
   },
   "data_frequencies": {
     "quarterly": ["unemployment", "gdp", "cpi", "lci", "hlf", "qem"],
@@ -26,8 +34,8 @@
   },
   "auto_detection": {
     "enabled": true,
-    "region_patterns": ["Northland", "Auckland", "Waikato", "Bay.*Plenty", "Gisborne", "Hawke.*Bay", "Taranaki", "Manawatu.*Whanganui", "Wellington", "Tasman", "Nelson", "Marlborough", "West.*Coast", "Canterbury", "Otago", "Southland"],
-    "age_patterns": ["\\d+-\\d+\\s*Years?", "\\d+\\+\\s*Years?", "Total.*Ages?"],
+    "region_patterns": ["Northland", "Auckland", "Waikato", "Bay.*Plenty", "Gisborne.*Hawke.*Bay", "Gisborne", "Hawke.*Bay", "Taranaki", "Manawatu.*Whanganui", "Wellington", "Tasman.*Nelson.*Marlborough.*West.*Coast", "Tasman", "Nelson", "Marlborough", "West.*Coast", "Canterbury", "Otago", "Southland", "North.*Island", "South.*Island", "Total.*All.*Regional.*Councils", "Rest.*North.*Island", "Rest.*South.*Island", "New.*Zealand"],
+    "age_patterns": ["\\d+-\\d+\\s*Years?", "\\d+\\+\\s*Years?", "\\d+-\\d+", "15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65", "Total.*Ages?"],
     "fallback_to_config": true
   },
   "validation_schemas": {
@@ -285,16 +293,16 @@
   "forecasting": {
     "target_columns": {
       "pattern": ".*[Uu]nemployment_[Rr]ate.*",
-      "exclude_patterns": ["_backup", "_temp", "_old", "_lag", "_ma", "_change"],
-      "priority_regions": ["Auckland", "Wellington", "Canterbury"],
-      "priority_demographics": ["European", "Maori", "Asian", "Male", "Female", "15-24 Years", "25-54 Years", "55+ Years"],
+      "exclude_patterns": ["_backup", "_temp", "_old", "_lag", "_ma3", "_ma2", "_ma4", "_ma5", "_change"],
+      "priority_regions": ["Auckland", "Wellington", "Canterbury", "Northland", "Waikato", "Bay_of_Plenty", "Gisborne_Hawke_s_Bay", "Taranaki", "Manawatu_Whanganui", "Otago", "Southland"],
+      "priority_demographics": ["European", "Maori", "Pacific_Peoples", "Asian", "Male", "Female", "15-24 Years", "25-54 Years", "55+ Years"],
       "fallback_to_any": true,
       "minimum_data_points": 10,
       "quality_threshold": 0.3
     },
     "demographic_comparison": {
       "enabled": true,
-      "comparison_demographics": ["European", "Asian", "Pacific_Peoples", "Maori", "Male", "Female", "15-24 Years", "25-54 Years", "55+ Years", "Total"],
+      "comparison_demographics": ["European", "Maori", "Pacific_Peoples", "Asian", "Male", "Female", "15-24 Years", "25-54 Years", "55+ Years", "Total"],
       "analysis_regions": ["Auckland", "Wellington", "Canterbury"],
       "separate_models": true,
       "cross_demographic_validation": true
@@ -302,7 +310,7 @@
     "feature_engineering": {
       "lag_periods": [1, 4],
       "rolling_windows": [3],
-      "economic_indicators": ["cpi_value", "lci_value", "gdp"],
+      "economic_indicators": ["cpi_value", "lci_value", "gdp", "ect_consumables", "ect_durables", "ect_hospitality", "ect_services", "ect_apparel", "ects_motor_vehicles", "ect_fuel", "ect_non_retail", "mei_filled_jobs", "mei_earnings_cash", "mei_earnings_accrued", "qem_earnings_ordinary", "qem_earnings_overtime", "qem_filled_jobs_part_time", "qem_filled_jobs_full_time"],
       "seasonal_features": ["quarter_sin", "quarter_cos"],
       "trend_features": ["time_trend"],
       "interaction_features": false,

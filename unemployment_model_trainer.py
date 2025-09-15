@@ -98,7 +98,7 @@ class UnemploymentModelTrainer:
         pattern = target_config.get('pattern', '.*unemployment_rate.*')
         exclude_patterns = target_config.get('exclude_patterns', ['lag', 'ma', 'change'])
         priority_regions = target_config.get('priority_regions', ['Auckland', 'Wellington', 'Canterbury'])
-        priority_demographics = target_config.get('priority_demographics', ['European', 'Maori', 'Asian'])
+        priority_demographics = target_config.get('priority_demographics', ['European', 'Maori', 'Asian', 'Male', 'Female', '15-24 Years', '25-54 Years', '55+ Years'])
         
         print(f"Detecting target columns with pattern: {pattern}")
         
@@ -164,8 +164,14 @@ class UnemploymentModelTrainer:
             print(f"Test Data: {len(self.test_data)} records")
             print(f"Total Features: {self.feature_summary.get('total_features', 'Unknown')}")
             
-            # Detect target columns from the actual data
-            self.target_columns = self.detect_target_columns(self.train_data)
+            # Use target columns from feature_summary.json (pre-selected by temporal splitter)
+            if 'target_columns' in self.feature_summary and self.feature_summary['target_columns']:
+                self.target_columns = self.feature_summary['target_columns']
+                print(f"Using {len(self.target_columns)} pre-selected target columns from temporal splitter")
+            else:
+                # Fallback: Detect target columns from the actual data
+                print("WARNING: No pre-selected targets found, falling back to auto-detection")
+                self.target_columns = self.detect_target_columns(self.train_data)
             
             if not self.target_columns:
                 print("ERROR: No target columns found!")
