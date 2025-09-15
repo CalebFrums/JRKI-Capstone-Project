@@ -256,27 +256,60 @@ class SimpleTimeSeriesAligner:
         return list(regions)
     
     def _is_important_column(self, col_name):
-        """Simple check for important columns to protect"""
+        """Config-driven check for important columns to protect"""
         col_lower = col_name.lower()
-        return (
-            col_lower == 'date' or
-            'total' in col_lower or 
-            'all_ages' in col_lower or
-            'unemployment_rate' in col_lower or  # Handles both cases
-            'aged_' in col_lower or  # Protect age demographic columns
-            '55_plus' in col_lower or  # Protect senior age columns
-            'gdp_millions' in col_lower or
-            'all_industries' in col_lower or  # Protect GDP columns
-            'cpi_value' in col_lower or
-            'all_groups' in col_lower or  # Protect CPI columns
-            ('cpi_' in col_lower and 'unknown' not in col_lower) or
-            # Protect ECT (Electronic Card Transaction) columns
-            any(ect_pattern in col_lower for ect_pattern in [
-                'actual_', 'seasonally_adjusted_', 'trend_', 
-                'consumables', 'durables', 'hospitality', 'services', 
-                'apparel', 'motor_vehicles', 'fuel', 'retail'
-            ])
-        )
+        
+        # Always protect date
+        if col_lower == 'date':
+            return True
+            
+        # Basic important patterns
+        basic_patterns = ['total', 'all_ages', 'unemployment_rate', 'aged_', '55_plus', 'gdp_millions', 'all_industries', 'cpi_value', 'all_groups']
+        if any(pattern in col_lower for pattern in basic_patterns):
+            return True
+            
+        # CPI patterns (avoid unknown)
+        if 'cpi_' in col_lower and 'unknown' not in col_lower:
+            return True
+            
+        # Use config-driven patterns for comprehensive coverage
+        industries_config = self.config.get('industries', {})
+        
+        # ECT categories from config
+        ect_categories = industries_config.get('ect_categories', [])
+        if any(category.lower() in col_lower for category in ect_categories):
+            return True
+            
+        # ECT adjustments from config
+        ect_adjustments = industries_config.get('ect_adjustments', [])
+        if any(adj.lower() in col_lower for adj in ect_adjustments):
+            return True
+            
+        # MEI variables and industries from config
+        mei_variables = industries_config.get('mei_variables', [])
+        if any(var.lower() in col_lower for var in mei_variables):
+            return True
+            
+        # QEM patterns from config
+        qem_industries = industries_config.get('qem_industries', [])
+        if any(industry.lower() in col_lower for industry in qem_industries):
+            return True
+            
+        qem_sectors = industries_config.get('qem_sectors', [])
+        if any(sector.lower() in col_lower for sector in qem_sectors):
+            return True
+            
+        # Demographics from config
+        demographics = self.config.get('demographics', {})
+        ethnic_groups = demographics.get('ethnic_groups', [])
+        if any(group.lower() in col_lower for group in ethnic_groups):
+            return True
+            
+        sex_categories = demographics.get('sex_categories', [])
+        if any(sex.lower() in col_lower for sex in sex_categories):
+            return True
+            
+        return False
     
     def clean_dataframe(self, df, dataset_name=""):
         """Simple data quality filter with Stats NZ data handling"""
@@ -354,16 +387,16 @@ class SimpleTimeSeriesAligner:
     
     def add_dataset_prefixes(self, df, filename):
         """Add dataset prefixes to column names for better organization"""
-        # Create dataset prefix mapping
+        # Enhanced dataset prefix mapping with comprehensive patterns
         prefix_map = {
-            'GDP': ['GDP All Industries'],
-            'CPI': ['CPI All Groups', 'CPI Regional'],
-            'HLF': ['HLF Labour', 'Labour force', 'Labour Force'],
-            'ECT': ['ECT electronic', 'ECT means', 'ECT Number', 'ECT Total', 'ECT Totals'],
-            'QEM': ['QEM average', 'QEM Average', 'QEM Filled', 'QEM filled'],
-            'MEI': ['MEI Age', 'MEI high', 'MEI Industry', 'MEI Sex'],
-            'LCI': ['LCI All'],
-            'BUO': ['BUO ICT', 'BUO Totals', 'BUO innovation']
+            'GDP': ['GDP All Industries', 'gdp'],
+            'CPI': ['CPI All Groups', 'CPI Regional', 'cpi'],
+            'HLF': ['HLF Labour', 'Labour force', 'Labour Force', 'unemployment'],
+            'ECT': ['ECT electronic', 'ECT means', 'ECT Number', 'ECT Total', 'ECT Totals', 'electronic card', 'card transactions'],
+            'QEM': ['QEM average', 'QEM Average', 'QEM Filled', 'QEM filled', 'quarterly employment'],
+            'MEI': ['MEI Age', 'MEI high', 'MEI Industry', 'MEI Sex', 'monthly employment'],
+            'LCI': ['LCI All', 'labour cost', 'cost index'],
+            'BUO': ['BUO ICT', 'BUO Totals', 'BUO innovation', 'business use', 'ict survey']
         }
         
         # Find matching prefix
@@ -968,6 +1001,46 @@ class SimpleTimeSeriesAligner:
         print(f"   SMOOTHED {outliers_cleaned} unemployment outliers")
         return df
 
+    def verify_config_integration(self, df):
+        """Verify that config-driven patterns are properly integrated"""
+        print(f"\nVerifying config-driven integration...")
+        
+        # Count columns matching config patterns
+        config_matches = {}
+        
+        # ECT patterns
+        ect_categories = self.config.get('industries', {}).get('ect_categories', [])
+        ect_matches = sum(1 for col in df.columns for category in ect_categories if category.lower() in col.lower())
+        if ect_matches > 0:
+            config_matches['ECT categories'] = ect_matches
+            
+        # MEI patterns
+        mei_variables = self.config.get('industries', {}).get('mei_variables', [])
+        mei_matches = sum(1 for col in df.columns for var in mei_variables if var.lower() in col.lower())
+        if mei_matches > 0:
+            config_matches['MEI variables'] = mei_matches
+            
+        # QEM patterns
+        qem_industries = self.config.get('industries', {}).get('qem_industries', [])
+        qem_matches = sum(1 for col in df.columns for industry in qem_industries if industry.lower() in col.lower())
+        if qem_matches > 0:
+            config_matches['QEM industries'] = qem_matches
+            
+        # Demographics
+        ethnic_groups = self.config.get('demographics', {}).get('ethnic_groups', [])
+        ethnic_matches = sum(1 for col in df.columns for group in ethnic_groups if group.lower() in col.lower())
+        if ethnic_matches > 0:
+            config_matches['Ethnic groups'] = ethnic_matches
+            
+        if config_matches:
+            print("   Config patterns successfully integrated:")
+            for pattern_type, count in config_matches.items():
+                print(f"     - {pattern_type}: {count} columns")
+        else:
+            print("   WARNING: No config pattern matches found - may need data source review")
+        
+        return config_matches
+
     def add_ml_features(self, df):
         """Basic time features for regional unemployment forecasting (no lag features to avoid data leakage)"""
         print(f"\nAdding basic time features...")
@@ -982,6 +1055,9 @@ class SimpleTimeSeriesAligner:
         for col in target_cols:
             region = col.split('_')[0]
             print(f"     - {region}")
+        
+        # Verify config integration
+        self.verify_config_integration(df)
         
         # Only add basic time features - lag features will be created after temporal split
         if df['date'].dtype.name.startswith('datetime'):
