@@ -831,7 +831,7 @@ class TemporalDataSplitter:
                 "unemployment_rates": len(unemployment_features),
                 "lag_features": len(lag_features),
                 "moving_averages": len(ma_features),
-                "economic_indicators": len([col for col in all_features if col in ['cpi_value', 'lci_value_LCI_All_Se']]),
+                "economic_indicators": len([col for col in all_features if any(indicator in col.lower() for indicator in self.config.get('forecasting', {}).get('feature_engineering', {}).get('economic_indicators', ['cpi_value', 'lci_value', 'gdp']))]),
                 "economic_changes": len(change_features)
             }
         }

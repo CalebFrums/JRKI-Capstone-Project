@@ -975,7 +975,20 @@ class AdvancedUnemploymentForecaster:
                 
                 # Get region patterns from config
                 priority_regions = self.config.get('forecasting', {}).get('target_columns', {}).get('priority_regions', ['Auckland', 'Wellington', 'Canterbury'])
-                region = next((part for part in parts if part in priority_regions), 'Unknown')
+                region = 'Unknown'
+                
+                # Enhanced region matching - case insensitive and handle underscores
+                target_lower = target_variable.lower()
+                for config_region in priority_regions:
+                    # Check both underscore and non-underscore versions, case insensitive
+                    region_variations = [
+                        config_region.lower(),
+                        config_region.lower().replace('_', ''),
+                        config_region.lower().replace('_', '_')
+                    ]
+                    if any(variation in target_lower for variation in region_variations):
+                        region = config_region
+                        break
                 demographic = None
                 age_group = None
                 

@@ -65,6 +65,7 @@ class UnemploymentModelTrainer:
         # Target columns will be detected from actual data, not hardcoded
         self.target_columns = []
         self.trained_models = {}
+        self.feature_count = None  # Store feature count for CSV export
         self.model_performance = {}
         self.feature_importance = {}
         
@@ -352,6 +353,7 @@ class UnemploymentModelTrainer:
                 rf_pred = np.mean(rf_predictions, axis=0)
                 rf_mae = mean_absolute_error(y_val_filled, rf_pred)
                 rf_rmse = np.sqrt(mean_squared_error(y_val_filled, rf_pred))
+                rf_mape = mean_absolute_percentage_error(y_val_filled, rf_pred) * 100  # Convert to percentage
                 
                 # Store ensemble models and performance
                 rf_models[region] = rf_ensemble
@@ -359,8 +361,13 @@ class UnemploymentModelTrainer:
                 rf_performance[region] = {
                     'validation_mae': rf_mae,
                     'validation_rmse': rf_rmse,
+                    'validation_mape': rf_mape,
                     'feature_count': len(feature_cols)
                 }
+                
+                # Store feature count for CSV export consistency
+                if self.feature_count is None:
+                    self.feature_count = len(feature_cols)
                 
                 # Feature importance (use first model in ensemble for feature importance)
                 if rf_ensemble:
@@ -421,7 +428,8 @@ class UnemploymentModelTrainer:
                     
                     test_performance[region]['random_forest'] = {
                         'mae': mean_absolute_error(y_test, rf_pred),
-                        'rmse': np.sqrt(mean_squared_error(y_test, rf_pred))
+                        'rmse': np.sqrt(mean_squared_error(y_test, rf_pred)),
+                        'mape': mean_absolute_percentage_error(y_test, rf_pred) * 100
                     }
                 
                 print(f"EVALUATED {region} Random Forest test evaluation complete")
@@ -446,15 +454,19 @@ class UnemploymentModelTrainer:
             # Save Random Forest model if available
             if (region_name in self.trained_models.get('random_forest', {})):
                 model = self.trained_models['random_forest'][region_name]
-                performance = self.model_performance['random_forest'][region_name]['validation_mae']
+                mae_performance = self.model_performance['random_forest'][region_name]['validation_mae']
+                rmse_performance = self.model_performance['random_forest'][region_name]['validation_rmse']
+                mape_performance = self.model_performance['random_forest'][region_name]['validation_mape']
                 
                 model_file = self.models_dir / f"random_forest_{region_name.lower().replace(' ', '_').replace('(', '').replace(')', '').replace(',', '').replace("'", '')}.joblib"
                 joblib.dump(model, model_file, compress=3)  # Compression level 3
                 saved_models[region] = {
                     'model': 'random_forest',
-                    'validation_mae': performance
+                    'validation_mae': mae_performance,
+                    'validation_rmse': rmse_performance,
+                    'validation_mape': mape_performance
                 }
-                print(f"SAVED: Random Forest for {region_name} (MAE: {performance:.4f})")
+                print(f"SAVED: Random Forest for {region_name} (MAE: {mae_performance:.4f})")
         
         # Update training summary with saved models
         self.saved_models_summary = saved_models
@@ -543,9 +555,13 @@ class UnemploymentModelTrainer:
                 if ('random_forest' in self.model_performance and 
                     region in self.model_performance['random_forest']):
                     mae = self.model_performance['random_forest'][region].get('validation_mae', None)
+                    rmse = self.model_performance['random_forest'][region].get('validation_rmse', None)
+                    mape = self.model_performance['random_forest'][region].get('validation_mape', None)
                     summary["models_by_region"][target_col] = {
                         "model": "random_forest",
-                        "validation_mae": mae
+                        "validation_mae": mae,
+                        "validation_rmse": rmse,
+                        "validation_mape": mape
                     }
         
         # Save summary
@@ -583,7 +599,7 @@ class UnemploymentModelTrainer:
                     row['AIC'] = None
                     row['Validation_MAE'] = metrics.get('validation_mae', None)
                     row['Validation_RMSE'] = metrics.get('validation_rmse', None)
-                    row['Validation_MAPE'] = None  # Random Forest doesn't have MAPE
+                    row['Validation_MAPE'] = metrics.get('validation_mape', None)
                     row['Feature_Count'] = metrics.get('feature_count', None)
                     
                     rows.append(row)
@@ -603,8 +619,8 @@ class UnemploymentModelTrainer:
                             'AIC': None,
                             'Validation_MAE': test_metrics.get('mae', None),
                             'Validation_RMSE': test_metrics.get('rmse', None),
-                            'Validation_MAPE': None,
-                            'Feature_Count': None
+                            'Validation_MAPE': test_metrics.get('mape', None),
+                            'Feature_Count': test_metrics.get('feature_count', self.get_stored_feature_count())
                         }
                         rows.append(row)
         
@@ -615,6 +631,10 @@ class UnemploymentModelTrainer:
         df = df.sort_values(['Algorithm', 'Demographic'])
         
         return df
+    
+    def get_stored_feature_count(self):
+        """Get the stored feature count for CSV export consistency"""
+        return self.feature_count
 
     # NOTE: Forecasting functionality moved to unemployment_forecaster_fixed.py
     # This separation ensures methodological correctness by preventing data leakage
@@ -690,7 +710,10 @@ class UnemploymentModelTrainer:
         print("\nMODELS BY REGION:")
         for region, info in summary["models_by_region"].items():
             if info.get('model'):
-                print(f"- {region}: {info['model']} (MAE: {info['validation_mae']:.3f})")
+                mae = info.get('validation_mae', 0)
+                rmse = info.get('validation_rmse', 0)
+                mape = info.get('validation_mape', 0)
+                print(f"- {region}: {info['model']} (MAE: {mae:.3f}, RMSE: {rmse:.3f}, MAPE: {mape:.1f}%)")
         
         print(f"\nAll results saved to: {self.models_dir}")
         print("Ready for dashboard integration and MBIE presentation!")
