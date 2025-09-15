@@ -126,7 +126,7 @@ class UnemploymentModelTrainer:
         for col in candidate_columns:
             # Include ALL ethnic unemployment rates (client wants demographic comparison)
             for demo in priority_demographics:
-                if demo in col:
+                if demo.lower() in col.lower():
                     priority_columns.append(col)
                     break
         
