@@ -21,6 +21,24 @@
 
 Production-ready unemployment forecasting system for Ministry of Business Innovation and Employment (MBIE) with methodologically correct data processing and forecasting. Achieves excellent accuracy for mainstream demographics, with known limitations for small ethnic populations in rural areas due to Stats NZ confidentiality constraints.
 
+### User Interface
+
+**GUI Application for Ease of Use**: A professional desktop GUI application (`jrki_gui.py`) has been created to provide a user-friendly interface for the unemployment forecasting pipeline. Made GUI for ease of use with modern design principles and real-time output display.
+
+**Key Features**:
+- **Professional Interface**: Clean, minimalistic design with modern color schemes
+- **Pipeline Control**: One-click execution of the complete forecasting pipeline
+- **Real-time Monitoring**: Live output display showing processing status
+- **Results Viewer**: Integrated viewer for forecast results and performance metrics
+- **Error Handling**: Comprehensive error reporting and status indicators
+
+**Executable Distribution**: The GUI has been compiled into a standalone Windows executable (`JRKI_Unemployment_Forecasting.exe`) using PyInstaller for easy deployment without requiring Python installation.
+
+**Enhanced Results Integration**: The GUI automatically detects and opens forecast results from the models directory, including:
+- `unemployment_forecasts_powerbi.csv` - Primary Power BI dashboard data
+- `forecast_summary_powerbi.csv` - Executive summary metrics
+- `unemployment_forecasts.json` - Complete forecast data in JSON format
+
 ## VERSION HISTORY
 
 ### Version 9.3 - Complete Model Evaluation System & Output Optimization (September 16, 2025)

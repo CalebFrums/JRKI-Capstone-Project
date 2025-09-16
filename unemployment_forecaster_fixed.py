@@ -1007,22 +1007,128 @@ class AdvancedUnemploymentForecaster:
                 demographic = None
                 age_group = None
                 
-                # Get demographic patterns from config and extract demographic info
-                priority_demographics = self.config.get('forecasting', {}).get('target_columns', {}).get('priority_demographics', ['European', 'Maori', 'Pacific_Peoples', 'Asian', 'Male', 'Female'])
-                for demo in priority_demographics:
-                    if demo in target_variable:
-                        demographic = demo
+                # Extract demographic information from target variable name using config
+                demographic = None
+
+                # Get demographic patterns from config
+                all_demographics = []
+
+                # Get from demographic config sections
+                demographic_config = self.config.get('demographics', {})
+                ethnic_groups = demographic_config.get('ethnic_groups', [])
+                sex_categories = demographic_config.get('sex_categories', [])
+
+                # Get from forecasting priority demographics
+                priority_demographics = self.config.get('forecasting', {}).get('target_columns', {}).get('priority_demographics', [])
+
+                # Combine all demographic categories
+                all_demographics.extend(ethnic_groups)
+                all_demographics.extend(sex_categories)
+                all_demographics.extend(priority_demographics)
+
+                # Remove duplicates and sort by length (longest first for better matching)
+                unique_demographics = sorted(list(set(all_demographics)), key=len, reverse=True)
+
+                # Extract demographic from target variable name (case insensitive)
+                target_lower = target_variable.lower()
+                for demo in unique_demographics:
+                    demo_lower = demo.lower()
+                    # Handle different naming conventions
+                    demo_patterns = [
+                        demo_lower,
+                        demo_lower.replace('_', ''),
+                        demo_lower.replace('_', ' '),
+                        demo_lower.replace(' ', '_'),
+                        demo_lower.replace('peoples', 'people'),
+                        demo_lower.replace('people', 'peoples')
+                    ]
+
+                    if any(pattern in target_lower for pattern in demo_patterns):
+                        demographic = demo.replace('_', ' ')  # Clean format for output
                         break
+
+                # If no specific demographic found, check if it's a total/general category
+                if demographic is None and any(term in target_lower for term in ['total', 'all', 'combined']):
+                    demographic = 'Total'
                 
-                # Extract age group
-                if '15_to_24' in target_variable or '15-24' in target_variable:
-                    age_group = '15-24 Years'
-                elif '25_to_54' in target_variable or '25-54' in target_variable:
-                    age_group = '25-54 Years'
-                elif '55_Plus' in target_variable or '55+' in target_variable:
-                    age_group = '55+ Years'
-                elif 'Total_All_Ages' in target_variable:
-                    age_group = 'Total All Ages'
+                # Extract age group using enhanced detection logic
+                age_group = None
+                target_lower = target_variable.lower()
+
+                # Get all age group categories from config
+                age_groups_basic = demographic_config.get('age_groups_basic', [])
+                age_groups_detailed = demographic_config.get('age_groups_detailed', [])
+                age_patterns_config = self.config.get('auto_detection', {}).get('age_patterns', [])
+
+                # Combine all age group lists
+                all_age_groups = age_groups_basic + age_groups_detailed
+
+                # Try to match against configured age groups first
+                for age_grp in all_age_groups:
+                    age_lower = age_grp.lower()
+                    # Create multiple patterns for age group matching
+                    age_match_patterns = [
+                        age_lower,
+                        age_lower.replace('-', '_to_'),
+                        age_lower.replace('-', '_'),
+                        age_lower.replace(' years', ''),
+                        age_lower.replace('years', ''),
+                        age_lower.replace('+', '_plus'),
+                        age_lower.replace('+ ', '_plus_'),
+                        age_lower.replace('total all ages', 'total_all_ages'),
+                        'aged_' + age_lower.replace('-', '_to_').replace(' years', '_years'),
+                        age_lower.replace('55+', '55_plus'),
+                        age_lower.replace('-', '_to_').replace(' ', '_'),
+                        age_lower.replace(' ', '_').replace('-', '_to_')
+                    ]
+
+                    if any(pattern in target_lower for pattern in age_match_patterns):
+                        # Format age group properly for output
+                        if age_grp in age_groups_detailed:
+                            # Convert detailed format to standard format
+                            if age_grp == '65+':
+                                age_group = '65+ Years'
+                            elif '-' in age_grp and age_grp != '15-24' and age_grp != '25-54' and age_grp != '55+':
+                                age_group = f"{age_grp} Years"
+                            else:
+                                age_group = age_grp
+                        else:
+                            age_group = age_grp
+                        break
+
+                # If no match found, use regex patterns to extract age info directly
+                import re
+                if not age_group:
+                    # Look for specific age patterns in target variable name
+                    age_extraction_patterns = [
+                        r'aged_(\d+)_(\d+)_years',  # aged_40_44_years
+                        r'aged_(\d+)_to_(\d+)_years',  # aged_40_to_44_years
+                        r'aged_(\d+)_(\d+)',  # aged_40_44
+                        r'aged_(\d+)_years_and_over',  # aged_65_years_and_over
+                        r'(\d+)_plus_years',  # 55_plus_years
+                        r'(\d+)_(\d+)_years',  # 40_44_years
+                        r'all_ages',  # all_ages
+                        r'total_all_ages',  # total_all_ages
+                    ]
+
+                    for pattern in age_extraction_patterns:
+                        match = re.search(pattern, target_lower)
+                        if match:
+                            if pattern == r'all_ages' or pattern == r'total_all_ages':
+                                age_group = 'All Ages'
+                                break
+                            elif 'and_over' in pattern or 'plus' in pattern:
+                                start_age = match.group(1)
+                                age_group = f"{start_age}+ Years"
+                                break
+                            elif len(match.groups()) == 2:
+                                start_age, end_age = match.groups()
+                                age_group = f"{start_age}-{end_age} Years"
+                                break
+                            elif len(match.groups()) == 1:
+                                age = match.group(1)
+                                age_group = f"{age}+ Years"
+                                break
                 
                 # Create flat records for each forecast period
                 for i, (forecast_date, forecast_value) in enumerate(zip(forecast_dates, forecasts)):
