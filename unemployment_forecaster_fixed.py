@@ -973,21 +973,36 @@ class AdvancedUnemploymentForecaster:
                 # Parse target variable components for Power BI dimensions
                 parts = target_variable.split('_')
                 
-                # Get region patterns from config
-                priority_regions = self.config.get('forecasting', {}).get('target_columns', {}).get('priority_regions', ['Auckland', 'Wellington', 'Canterbury'])
+                # Get all regions from config (not just priority ones)
+                all_regions = []
+                regions_config = self.config.get('regions', {})
+                for region_list in regions_config.values():
+                    if isinstance(region_list, list):
+                        all_regions.extend(region_list)
+
+                # Add priority regions as well
+                priority_regions = self.config.get('forecasting', {}).get('target_columns', {}).get('priority_regions', [])
+                all_regions.extend(priority_regions)
+
+                # Remove duplicates and sort by length (longest first for better matching)
+                all_regions = sorted(list(set(all_regions)), key=len, reverse=True)
+
                 region = 'Unknown'
-                
+
                 # Enhanced region matching - case insensitive and handle underscores
                 target_lower = target_variable.lower()
-                for config_region in priority_regions:
+                for config_region in all_regions:
                     # Check both underscore and non-underscore versions, case insensitive
                     region_variations = [
                         config_region.lower(),
+                        config_region.lower().replace('_', ' '),
                         config_region.lower().replace('_', ''),
-                        config_region.lower().replace('_', '_')
+                        config_region.lower().replace(' ', '_'),
+                        config_region.lower().replace('-', '_'),
+                        config_region.lower().replace('s_', '_')  # Handle possessive forms
                     ]
                     if any(variation in target_lower for variation in region_variations):
-                        region = config_region
+                        region = config_region.replace('_', ' ')  # Clean format for output
                         break
                 demographic = None
                 age_group = None

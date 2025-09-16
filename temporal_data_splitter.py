@@ -641,7 +641,8 @@ class TemporalDataSplitter:
                     print(f"   Found {len(correlated_cols)} correlated series for {col}")
                     # Apply correlated imputation to all datasets
                     for df in [train_df, val_df, test_df]:
-                        df[col] = self.cross_sectional_correlated_impute(df, col, correlated_cols)
+                        imputed_values = self.cross_sectional_correlated_impute(df, col, correlated_cols)
+                        df.loc[:, col] = imputed_values
                     correlation_applied += 1
         
         print(f"   Applied correlation-based imputation to {correlation_applied} unemployment series")
@@ -677,7 +678,8 @@ class TemporalDataSplitter:
                     # Apply Kalman filter to each dataset
                     for df in [train_df, val_df, test_df]:
                         if col in df.columns and df[col].isna().any():
-                            df[col] = self.kalman_impute_series(df[col])
+                            imputed_values = self.kalman_impute_series(df[col])
+                            df.loc[:, col] = imputed_values
                     kalman_applied += 1
                 except Exception as e:
                     print(f"   Warning: Kalman imputation failed for {col}: {e}")
@@ -747,63 +749,83 @@ class TemporalDataSplitter:
         
         lag_features_added = 0
         
+        # Create all new features as separate DataFrames, then concat at once
+        new_features = []
+
         # Only create lag features for target columns (not all unemployment columns)
         for target_col in target_columns:
             if target_col in df.columns:
                 # Only create lag1 and lag4 (quarterly lag) for targets
-                df[f'{target_col}_lag1'] = df[target_col].shift(1)
-                df[f'{target_col}_lag4'] = df[target_col].shift(4)
+                lag_df = pd.DataFrame({
+                    f'{target_col}_lag1': df[target_col].shift(1),
+                    f'{target_col}_lag4': df[target_col].shift(4)
+                }, index=df.index)
+                new_features.append(lag_df)
                 lag_features_added += 2
-        
+
         # Add key economic indicators for better forecasting
         essential_indicators = ['cpi_value', 'lci_value', 'gdp']
         econ_features_added = 0
-        
+
         # Add change features for key economic indicators (limit to 2 to avoid overfitting)
         indicators_added = 0
+        change_features = {}
         for col in df.columns:
             if any(indicator in col.lower() for indicator in essential_indicators) and indicators_added < 2:
                 # Add quarterly change for economic context
-                df[f'{col}_change'] = df[col].pct_change()
+                change_features[f'{col}_change'] = df[col].pct_change()
                 econ_features_added += 1
                 indicators_added += 1
-        
+
+        if change_features:
+            change_df = pd.DataFrame(change_features, index=df.index)
+            new_features.append(change_df)
+
         # Add temporal features for better forecasting
         temporal_features_added = 0
-        
+
         # Add quarterly seasonal features if date column exists
         if 'date' in df.columns:
             try:
                 dates = pd.to_datetime(df['date'])
                 # Quarterly seasonality (key for unemployment data)
-                df['quarter_sin'] = np.sin(2 * np.pi * dates.dt.quarter / 4)
-                df['quarter_cos'] = np.cos(2 * np.pi * dates.dt.quarter / 4)
-                # Simple trend component
-                df['time_trend'] = range(len(df))
+                temporal_df = pd.DataFrame({
+                    'quarter_sin': np.sin(2 * np.pi * dates.dt.quarter / 4),
+                    'quarter_cos': np.cos(2 * np.pi * dates.dt.quarter / 4),
+                    'time_trend': range(len(df))
+                }, index=df.index)
+                new_features.append(temporal_df)
                 temporal_features_added = 3
             except Exception:
                 pass
-        
+
         # Add only 3-period moving average for primary target (not all targets)
-        ma_features_added = 0
+        ma3_features_added = 0
         if target_columns and target_columns[0] in df.columns:
             primary_target = target_columns[0]
             # Safe rolling mean calculation - check for sufficient non-null values
             target_values = df[primary_target].dropna()
             if len(target_values) >= 3:  # Only calculate if we have sufficient data
-                df[f'{primary_target}_ma3'] = df[primary_target].rolling(window=3, min_periods=1).mean()
-                ma_features_added = 1
+                rolling_avg3 = df[primary_target].rolling(window=3, min_periods=1).mean()
             else:
                 # For insufficient data, just copy the target values
-                df[f'{primary_target}_ma3'] = df[primary_target]
-                ma_features_added = 1
+                rolling_avg3 = df[primary_target]
+
+            avg3_df = pd.DataFrame({f'{primary_target}_avg3': rolling_avg3}, index=df.index)
+            new_features.append(avg3_df)
+            ma3_features_added = 1
+
+        # Concatenate all new features at once to avoid fragmentation
+        if new_features:
+            all_new_features = pd.concat(new_features, axis=1)
+            df = pd.concat([df, all_new_features], axis=1)
         
         print(f"     SIMPLIFIED FEATURE SET:")
         print(f"     Added {lag_features_added} essential lag features")
-        print(f"     Added {ma_features_added} moving average feature")
+        print(f"     Added {ma3_features_added} rolling average feature")
         print(f"     Added {econ_features_added} economic indicator")
         print(f"     Added {temporal_features_added} temporal features")
-        print(f"     TOTAL NEW FEATURES: {lag_features_added + ma_features_added + econ_features_added + temporal_features_added}")
+        print(f"     TOTAL NEW FEATURES: {lag_features_added + ma3_features_added + econ_features_added + temporal_features_added}")
         
         return df
     
