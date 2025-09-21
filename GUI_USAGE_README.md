@@ -273,5 +273,5 @@ The system generates production-ready outputs suitable for:
 
 **Version:** Production v2.2
 **Team:** JRKI
-**Contact:** For technical support, refer to the documentation in the `Summary + Milestones + Documentation/` folder.
+
 
