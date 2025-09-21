@@ -30,7 +30,7 @@ pip install statsmodels  # Optional, for ARIMA support
 You only need to create the input directory manually:
 
 ```
-D:\Claude\Capstone\
+D:\Capstone\
 ├── JRKI_Forecasting_Pipeline.exe        # Main GUI application
 ├── simple_config.json                   # Configuration file
 ├── comprehensive_data_cleaner.py        # Data cleaning script
@@ -274,3 +274,4 @@ The system generates production-ready outputs suitable for:
 **Version:** Production v2.2
 **Team:** JRKI
 **Contact:** For technical support, refer to the documentation in the `Summary + Milestones + Documentation/` folder.
+
