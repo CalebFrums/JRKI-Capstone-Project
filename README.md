@@ -6,7 +6,7 @@
 **Status**: 🎯 **PRODUCTION READY - GOVERNMENT DEPLOYMENT APPROVED**  
 **Updated**: September 10, 2025
 
-A comprehensive unemployment forecasting system providing detailed demographic analysis across all New Zealand regions. Built for the Ministry of Business, Innovation and Employment (MBIE) with complete demographic coverage including age, gender, ethnicity, and regional breakdowns.
+A comprehensive unemployment forecasting system providing detailed demographic analysis across all New Zealand regions. Built for Stats NZ and potentially the Ministry of Business, Innovation and Employment (MBIE) with complete demographic coverage including age, gender, ethnicity, and regional breakdowns.
 
 ---
 
@@ -14,7 +14,7 @@ A comprehensive unemployment forecasting system providing detailed demographic a
 
 ### **Comprehensive Demographic Coverage**
 
-- **📊 150 Production Models**: Age×Gender×Ethnicity×Region combinations
+- **📊 176 Production Models**: Age×Gender×Ethnicity×Region combinations
 - **🌏 All NZ Regions**: 16 regional councils fully covered  
 - **👥 Complete Demographics**: European, Asian, Maori, Pacific Peoples, MELAA
 - **📅 Age Groups**: 15-19, 20-24, 25-34, 35-44, 45-54, 55-64, 65+ years
