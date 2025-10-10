@@ -46,7 +46,7 @@ flowchart TD
     G --> H["Random Forest models trained"]
     H --> I["Model Validation"]
     I --> J["Random Forest models saved"]
-    J --> K["Forecasting<br/>unemployment_forecaster_fixed.py<br/>(Optimized - 5min runtime)"]
+    J --> K["Forecasting<br/>unemployment_forecaster_fixed.py<br/>"]
     K --> L["8-quarter predictions"]
     L --> M["Dashboard Outputs<br/>(Power BI CSV/JSON)"]
     M --> N["Power BI Dashboard Ready"]
@@ -189,8 +189,8 @@ ls data_cleaned/cleaned_*.csv | wc -l  # Should show 29 datasets
 | `comprehensive_data_cleaner.py` | Cleans 29 Stats NZ datasets | 5-10 min |
 | `time_series_aligner_simplified.py` | Creates integrated dataset | 5-8 min |
 | `temporal_data_splitter.py` | Anti-leakage train/test splits | 2-3 min |
-| `unemployment_model_trainer.py` | Trains Random Forest models for all regions | 15-20 min |
-| `unemployment_forecaster_fixed.py` | Generates demographic forecasts (optimized) | 5 min |
+| `unemployment_model_trainer.py` | Trains Random Forest models for all regions | 1-2 hours |
+| `unemployment_forecaster_fixed.py` | Generates demographic forecasts | 1 hour |
 
 ### **Key Configuration**
 
